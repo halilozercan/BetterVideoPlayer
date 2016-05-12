@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#BF000000"
+    android:paddingBottom="@dimen/content_inset_less"
+    android:paddingLeft="@dimen/content_inset_less"
+    android:paddingRight="@dimen/content_inset_less"
+    android:paddingTop="@dimen/content_inset_less">
+
+    <SeekBar
+        android:id="@+id/seeker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_inset_small" />
+
+    <TextView
+        android:id="@+id/position"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/seeker"
+        android:layout_marginLeft="@dimen/content_inset"
+        android:layout_marginStart="@dimen/content_inset"
+        android:fontFamily="sans-serif"
+        android:textColor="#fff"
+        android:textSize="@dimen/text_size_small"
+        tools:text="00:00" />
+
+    <TextView
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/seeker"
+        android:layout_marginEnd="@dimen/content_inset"
+        android:layout_marginRight="@dimen/content_inset"
+        android:fontFamily="sans-serif"
+        android:textColor="#fff"
+        android:textSize="@dimen/text_size_small"
+        tools:text="-05:00" />
+
+    <ImageButton
+        android:id="@+id/btnRestart"
+        android:layout_width="@dimen/button_size"
+        android:layout_height="@dimen/button_size"
+        android:layout_below="@+id/position"
+        android:background="?selectableItemBackground"
+        android:src="@drawable/evp_action_restart"
+        tools:ignore="ContentDescription" />
+
+    <Button
+        android:id="@+id/btnRetry"
+        style="?borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/button_size"
+        android:layout_below="@+id/position"
+        android:background="?selectableItemBackground"
+        android:text="@string/evp_retry"
+        android:textColor="#fff"
+        tools:ignore="ContentDescription" />
+
+    <ImageButton
+        android:id="@+id/btnPlayPause"
+        android:layout_width="@dimen/button_size"
+        android:layout_height="@dimen/button_size"
+        android:layout_below="@+id/position"
+        android:layout_centerHorizontal="true"
+        android:background="?selectableItemBackground"
+        android:src="@drawable/evp_action_play"
+        tools:ignore="ContentDescription" />
+
+    <Button
+        android:id="@+id/btnSubmit"
+        style="?borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/button_size"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/position"
+        android:background="?selectableItemBackground"
+        android:text="@string/evp_submit"
+        android:textColor="#fff"
+        tools:ignore="ContentDescription" />
+
+</RelativeLayout>

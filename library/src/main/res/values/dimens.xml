@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="content_inset">16dp</dimen>
+    <dimen name="content_inset_less">12dp</dimen>
+    <dimen name="content_inset_half">8dp</dimen>
+    <dimen name="content_inset_small">4dp</dimen>
+
+    <dimen name="text_size_small">10sp</dimen>
+
+    <dimen name="button_size">48dp</dimen>
+
+</resources>
