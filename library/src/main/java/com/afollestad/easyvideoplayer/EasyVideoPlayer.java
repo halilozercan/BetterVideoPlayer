@@ -102,6 +102,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     private int mRightAction = RIGHT_ACTION_NONE;
     private boolean mHideControlsOnPlay;
     private boolean mAutoPlay;
+    private int mInitialPosition = -1;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -123,7 +124,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
 
     private void init(Context context) {
         setBackgroundColor(Color.BLACK);
-        // TODO
+        // TODO load attributes
     }
 
     public void setSource(@NonNull Uri source) {
@@ -181,6 +182,284 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
     }
+
+    public void setInitialPosition(int pos) {
+        mInitialPosition = pos;
+    }
+
+    private void prepare() {
+        if (!mSurfaceAvailable || mSource == null || mPlayer == null || mIsPrepared)
+            return;
+        try {
+            if (mCallback != null)
+                mCallback.onPreparing(this);
+            mPlayer.setSurface(mSurface);
+            if (mSource.getScheme().equals("http") || mSource.getScheme().equals("https")) {
+                LOG("Loading web URI: " + mSource.toString());
+                mPlayer.setDataSource(mSource.toString());
+            } else {
+                LOG("Loading local URI: " + mSource.toString());
+                mPlayer.setDataSource(getContext(), mSource);
+            }
+            mPlayer.prepareAsync();
+        } catch (IOException e) {
+            throwError(e);
+        }
+    }
+
+    public void setControlsEnabled(boolean enabled) {
+        mSeeker.setEnabled(enabled);
+        mBtnPlayPause.setEnabled(enabled);
+        mBtnSubmit.setEnabled(enabled);
+        mBtnRestart.setEnabled(enabled);
+        mBtnRetry.setEnabled(false);
+
+        final float disabledAlpha = .4f;
+        mBtnPlayPause.setAlpha(enabled ? 1f : disabledAlpha);
+        mBtnSubmit.setAlpha(enabled ? 1f : disabledAlpha);
+        mBtnRestart.setAlpha(enabled ? 1f : disabledAlpha);
+
+        mClickFrame.setEnabled(enabled);
+    }
+
+    public void showControls() {
+        if (isControlsShown()) return;
+        mControlsFrame.animate().cancel();
+        mControlsFrame.setAlpha(0f);
+        mControlsFrame.setVisibility(View.VISIBLE);
+        mControlsFrame.animate().alpha(1f).setListener(null)
+                .setInterpolator(new DecelerateInterpolator()).start();
+    }
+
+    public void hideControls() {
+        if (!isControlsShown()) return;
+        mControlsFrame.animate().cancel();
+        mControlsFrame.setAlpha(1f);
+        mControlsFrame.setVisibility(View.VISIBLE);
+        mControlsFrame.animate().alpha(0f)
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (mControlsFrame != null)
+                            mControlsFrame.setVisibility(View.GONE);
+                    }
+                }).start();
+    }
+
+    public boolean isControlsShown() {
+        return mControlsFrame.getAlpha() > .5f;
+    }
+
+    public void toggleControls() {
+        if (isControlsShown()) {
+            hideControls();
+        } else {
+            showControls();
+        }
+    }
+
+    public boolean isPrepared() {
+        return mPlayer != null && mIsPrepared;
+    }
+
+    public boolean isPlaying() {
+        return mPlayer != null && mPlayer.isPlaying();
+    }
+
+    public int getCurrentPosition() {
+        if (mPlayer == null) return -1;
+        return mPlayer.getCurrentPosition();
+    }
+
+    public int getDuration() {
+        if (mPlayer == null) return -1;
+        return mPlayer.getDuration();
+    }
+
+    public void start() {
+        if (mPlayer == null) return;
+        mPlayer.start();
+        if (mHandler == null) mHandler = new Handler();
+        mHandler.post(mUpdateCounters);
+        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
+    }
+
+    public void seekTo(int pos) {
+        if (mPlayer == null) return;
+        mPlayer.seekTo(pos);
+    }
+
+    public void pause() {
+        if (mPlayer == null || !isPlaying()) return;
+        mPlayer.pause();
+        if (mHandler == null) return;
+        mHandler.removeCallbacks(mUpdateCounters);
+        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
+    }
+
+    public void stop() {
+        if (mPlayer == null) return;
+        try {
+            mPlayer.stop();
+        } catch (Throwable ignored) {
+        }
+        if (mHandler == null) return;
+        mHandler.removeCallbacks(mUpdateCounters);
+        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
+    }
+
+    public void reset() {
+        if (mPlayer == null) return;
+        mIsPrepared = false;
+        mPlayer.reset();
+        mIsPrepared = false;
+    }
+
+    public void release() {
+        if (mPlayer == null) return;
+        mIsPrepared = false;
+
+        try {
+            mPlayer.release();
+        } catch (Throwable ignored) {
+        }
+        mPlayer = null;
+
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mUpdateCounters);
+            mHandler = null;
+        }
+
+        LOG("Released player and Handler");
+    }
+
+    // Surface listeners
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+        LOG("Surface texture available: %dx%d", width, height);
+        mInitialTextureWidth = width;
+        mInitialTextureHeight = height;
+        mSurfaceAvailable = true;
+        mSurface = new Surface(surfaceTexture);
+        if (mIsPrepared) {
+            mPlayer.setSurface(mSurface);
+        } else {
+            prepare();
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+        LOG("Surface texture changed: %dx%d", width, height);
+        adjustAspectRatio(width, height, mPlayer.getVideoWidth(), mPlayer.getVideoHeight());
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        LOG("Surface texture destroyed");
+        mSurfaceAvailable = false;
+        mSurface = null;
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+    }
+
+    // Media player listeners
+
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        LOG("onPrepared()");
+        mProgressFrame.setVisibility(View.INVISIBLE);
+        mIsPrepared = true;
+        if (mCallback != null)
+            mCallback.onPrepared(this);
+        mLabelPosition.setText(Util.getDurationString(0, false));
+        mLabelDuration.setText(Util.getDurationString(mediaPlayer.getDuration(), false));
+        mSeeker.setProgress(0);
+        mSeeker.setMax(mediaPlayer.getDuration());
+        setControlsEnabled(true);
+
+        if (mAutoPlay) {
+            start();
+            if (mInitialPosition > 0) {
+                seekTo(mInitialPosition);
+                mInitialPosition = -1;
+            }
+        } else {
+            // Hack to show first frame, is there another way?
+            mPlayer.start();
+            mPlayer.pause();
+        }
+    }
+
+    @Override
+    public void onBufferingUpdate(MediaPlayer mediaPlayer, int percent) {
+        LOG("Buffering: %d%%", percent);
+        if (mCallback != null)
+            mCallback.onBuffering(percent);
+        if (mSeeker != null) {
+            if (percent == 100) mSeeker.setSecondaryProgress(0);
+            else mSeeker.setSecondaryProgress(mSeeker.getMax() * (percent / 100));
+        }
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        LOG("onCompletion()");
+        if (mCallback != null)
+            mCallback.onCompletion(this);
+        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
+        if (mHandler != null)
+            mHandler.removeCallbacks(mUpdateCounters);
+        showControls();
+    }
+
+    @Override
+    public void onVideoSizeChanged(MediaPlayer mediaPlayer, int width, int height) {
+        LOG("Video size changed: %dx%d", width, height);
+        adjustAspectRatio(mInitialTextureWidth, mInitialTextureHeight, width, height);
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+        if (what == -38) {
+            // Error code -38 happens on some Samsung devices
+            // Just ignore it
+            return false;
+        }
+        String errorMsg = "Preparation/playback error (" + what + "): ";
+        switch (what) {
+            default:
+                errorMsg += "Unknown error";
+                break;
+            case MediaPlayer.MEDIA_ERROR_IO:
+                errorMsg += "I/O error";
+                break;
+            case MediaPlayer.MEDIA_ERROR_MALFORMED:
+                errorMsg += "Malformed";
+                break;
+            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                errorMsg += "Not valid for progressive playback";
+                break;
+            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                errorMsg += "Server died";
+                break;
+            case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
+                errorMsg += "Timed out";
+                break;
+            case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
+                errorMsg += "Unsupported";
+                break;
+        }
+        throwError(new Exception(errorMsg));
+        return false;
+    }
+
+    // View events
 
     @Override
     protected void onFinishInflate() {
@@ -256,319 +535,6 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         prepare();
     }
 
-    private void prepare() {
-        if (!mSurfaceAvailable || mSource == null || mPlayer == null || mIsPrepared) return;
-        try {
-            if (mCallback != null)
-                mCallback.onPreparing(this);
-            mPlayer.setSurface(mSurface);
-            if (mSource.getScheme().equals("http") || mSource.getScheme().equals("https")) {
-                LOG("Loading web URI: " + mSource.toString());
-                mPlayer.setDataSource(mSource.toString());
-            } else {
-                LOG("Loading local URI: " + mSource.toString());
-                mPlayer.setDataSource(getContext(), mSource);
-            }
-            mPlayer.prepareAsync();
-        } catch (IOException e) {
-            throwError(e);
-        }
-    }
-
-    public void setControlsEnabled(boolean enabled) {
-        mSeeker.setEnabled(enabled);
-        mBtnPlayPause.setEnabled(enabled);
-        mBtnSubmit.setEnabled(enabled);
-        mBtnRestart.setEnabled(enabled);
-        mBtnRetry.setEnabled(false);
-
-        final float disabledAlpha = .4f;
-        mBtnPlayPause.setAlpha(enabled ? 1f : disabledAlpha);
-        mBtnSubmit.setAlpha(enabled ? 1f : disabledAlpha);
-        mBtnRestart.setAlpha(enabled ? 1f : disabledAlpha);
-
-        mClickFrame.setEnabled(enabled);
-    }
-
-    public void showControls() {
-        if (isControlsShown()) return;
-        mControlsFrame.animate().cancel();
-        mControlsFrame.setAlpha(0f);
-        mControlsFrame.setVisibility(View.VISIBLE);
-        mControlsFrame.animate().alpha(1f).setListener(null)
-                .setInterpolator(new DecelerateInterpolator()).start();
-    }
-
-    public void hideControls() {
-        if (!isControlsShown()) return;
-        mControlsFrame.animate().cancel();
-        mControlsFrame.setAlpha(1f);
-        mControlsFrame.setVisibility(View.VISIBLE);
-        mControlsFrame.animate().alpha(0f)
-                .setInterpolator(new DecelerateInterpolator())
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        if (mControlsFrame != null)
-                            mControlsFrame.setVisibility(View.GONE);
-                    }
-                }).start();
-    }
-
-    public boolean isControlsShown() {
-        return mControlsFrame.getAlpha() > .5f;
-    }
-
-    public void toggleControls() {
-        if (isControlsShown()) {
-            hideControls();
-        } else {
-            showControls();
-        }
-    }
-
-    private void adjustAspectRatio(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {
-        final double aspectRatio = (double) videoHeight / videoWidth;
-        int newWidth, newHeight;
-
-        if (viewHeight > (int) (viewWidth * aspectRatio)) {
-            // limited by narrow width; restrict height
-            newWidth = viewWidth;
-            newHeight = (int) (viewWidth * aspectRatio);
-        } else {
-            // limited by short height; restrict width
-            newWidth = (int) (viewHeight / aspectRatio);
-            newHeight = viewHeight;
-        }
-
-        final int xoff = (viewWidth - newWidth) / 2;
-        final int yoff = (viewHeight - newHeight) / 2;
-
-        final Matrix txform = new Matrix();
-        mTextureView.getTransform(txform);
-        txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
-        txform.postTranslate(xoff, yoff);
-        mTextureView.setTransform(txform);
-    }
-
-    private void throwError(Exception e) {
-        if (mCallback != null)
-            mCallback.onError(this, e);
-        else throw new RuntimeException(e);
-    }
-
-    public boolean isPrepared() {
-        return mPlayer != null && mIsPrepared;
-    }
-
-    public boolean isPlaying() {
-        return mPlayer != null && mPlayer.isPlaying();
-    }
-
-    public void start() {
-        if (mPlayer == null) return;
-        mPlayer.start();
-        if (mHandler == null) mHandler = new Handler();
-        mHandler.post(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
-    }
-
-    public void seekTo(int pos) {
-        if (mPlayer == null) return;
-        mPlayer.seekTo(pos);
-    }
-
-    public void pause() {
-        if (mPlayer == null) return;
-        mPlayer.pause();
-        if (mHandler == null) return;
-        mHandler.removeCallbacks(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
-    }
-
-    public void stop() {
-        if (mPlayer == null) return;
-        try {
-            mPlayer.stop();
-        } catch (Throwable ignored) {
-        }
-        if (mHandler == null) return;
-        mHandler.removeCallbacks(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
-    }
-
-    public void reset() {
-        if (mPlayer == null) return;
-        mIsPrepared = false;
-        mPlayer.reset();
-        mIsPrepared = false;
-    }
-
-    public void release() {
-        if (mPlayer == null) return;
-        mIsPrepared = false;
-
-        try {
-            mPlayer.release();
-        } catch (Throwable ignored) {
-        }
-        mPlayer = null;
-
-        if (mHandler != null) {
-            mHandler.removeCallbacks(mUpdateCounters);
-            mHandler = null;
-        }
-
-        LOG("Released player and Handler");
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-
-        LOG("Detached from window");
-        if (mPlayer != null) {
-            stop();
-            release();
-        }
-
-        mTextureView = null;
-        mSurface = null;
-
-        mSeeker = null;
-        mLabelPosition = null;
-        mLabelDuration = null;
-        mBtnPlayPause = null;
-        mBtnRestart = null;
-        mBtnSubmit = null;
-
-        mControlsFrame = null;
-        mClickFrame = null;
-        mProgressFrame = null;
-
-        if (mHandler != null) {
-            mHandler.removeCallbacks(mUpdateCounters);
-            mHandler = null;
-        }
-    }
-
-    // Surface listeners
-
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-        LOG("Surface texture available: %dx%d", width, height);
-        mInitialTextureWidth = width;
-        mInitialTextureHeight = height;
-        mSurfaceAvailable = true;
-        mSurface = new Surface(surfaceTexture);
-        prepare();
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-        LOG("Surface texture changed: %dx%d", width, height);
-        adjustAspectRatio(width, height, mPlayer.getVideoWidth(), mPlayer.getVideoHeight());
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-        LOG("Surface texture destroyed");
-        mSurfaceAvailable = false;
-        mSurface = null;
-        return false;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-    }
-
-    // Media player listeners
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        LOG("onPrepared()");
-        mProgressFrame.setVisibility(View.INVISIBLE);
-        mIsPrepared = true;
-        if (mCallback != null)
-            mCallback.onPrepared(this);
-        mLabelPosition.setText(Util.getDurationString(0, false));
-        mLabelDuration.setText(Util.getDurationString(mediaPlayer.getDuration(), false));
-        mSeeker.setProgress(0);
-        mSeeker.setMax(mediaPlayer.getDuration());
-        setControlsEnabled(true);
-
-        if (mAutoPlay) {
-            start();
-        } else {
-            // Hack to show first frame, is there another way?
-            mPlayer.start();
-            mPlayer.pause();
-        }
-    }
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int percent) {
-        LOG("Buffering: %d%%", percent);
-        if (mCallback != null)
-            mCallback.onBuffering(percent);
-        if (mSeeker != null) {
-            if (percent == 100) mSeeker.setSecondaryProgress(0);
-            else mSeeker.setSecondaryProgress(mSeeker.getMax() * (percent / 100));
-        }
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        LOG("onCompletion()");
-        if (mCallback != null)
-            mCallback.onCompletion(this);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
-        if (mHandler != null)
-            mHandler.removeCallbacks(mUpdateCounters);
-        showControls();
-    }
-
-    @Override
-    public void onVideoSizeChanged(MediaPlayer mediaPlayer, int width, int height) {
-        LOG("Video size changed: %dx%d", width, height);
-        adjustAspectRatio(mInitialTextureWidth, mInitialTextureHeight, width, height);
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-        if (what == -38) {
-            // Error code -38 happens on some Samsung devices
-            // Just ignore it
-            return false;
-        }
-        String errorMsg = "Preparation/playback error (" + what + "): ";
-        switch (what) {
-            default:
-                errorMsg += "Unknown error";
-                break;
-            case MediaPlayer.MEDIA_ERROR_IO:
-                errorMsg += "I/O error";
-                break;
-            case MediaPlayer.MEDIA_ERROR_MALFORMED:
-                errorMsg += "Malformed";
-                break;
-            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                errorMsg += "Not valid for progressive playback";
-                break;
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                errorMsg += "Server died";
-                break;
-            case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
-                errorMsg += "Timed out";
-                break;
-            case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
-                errorMsg += "Unsupported";
-                break;
-        }
-        throwError(new Exception(errorMsg));
-        return false;
-    }
-
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.btnPlayPause) {
@@ -607,9 +573,71 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         if (mWasPlaying) mPlayer.start();
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        LOG("Detached from window");
+        if (mPlayer != null) {
+            stop();
+            release();
+        }
+
+        mTextureView = null;
+        mSurface = null;
+
+        mSeeker = null;
+        mLabelPosition = null;
+        mLabelDuration = null;
+        mBtnPlayPause = null;
+        mBtnRestart = null;
+        mBtnSubmit = null;
+
+        mControlsFrame = null;
+        mClickFrame = null;
+        mProgressFrame = null;
+
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mUpdateCounters);
+            mHandler = null;
+        }
+    }
+
+    // Utilities
+
     private static void LOG(String message, Object... args) {
         if (args != null)
             message = String.format(message, args);
         Log.d("EasyVideoPlayer", message);
+    }
+
+    private void adjustAspectRatio(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {
+        final double aspectRatio = (double) videoHeight / videoWidth;
+        int newWidth, newHeight;
+
+        if (viewHeight > (int) (viewWidth * aspectRatio)) {
+            // limited by narrow width; restrict height
+            newWidth = viewWidth;
+            newHeight = (int) (viewWidth * aspectRatio);
+        } else {
+            // limited by short height; restrict width
+            newWidth = (int) (viewHeight / aspectRatio);
+            newHeight = viewHeight;
+        }
+
+        final int xoff = (viewWidth - newWidth) / 2;
+        final int yoff = (viewHeight - newHeight) / 2;
+
+        final Matrix txform = new Matrix();
+        mTextureView.getTransform(txform);
+        txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
+        txform.postTranslate(xoff, yoff);
+        mTextureView.setTransform(txform);
+    }
+
+    private void throwError(Exception e) {
+        if (mCallback != null)
+            mCallback.onError(this, e);
+        else throw new RuntimeException(e);
     }
 }

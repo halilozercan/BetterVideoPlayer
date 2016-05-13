@@ -31,8 +31,7 @@ public class MainActivity extends AppCompatActivity implements EasyVideoCallback
     @Override
     protected void onPause() {
         super.onPause();
-        if (player.isPlaying())
-            player.pause();
+        player.pause();
     }
 
     @Override
