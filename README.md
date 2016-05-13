@@ -33,7 +33,7 @@ Add this in your module's `build.gradle` file:
 dependencies {
     // ... other dependencies
 
-    compile 'com.afollestad:easyvideoplayer:0.2.1'
+    compile 'com.afollestad:easyvideoplayer:0.2.2'
 }
 ```
 
@@ -277,6 +277,10 @@ player.setPlayDrawableRes(int);
 // Sets a custom drawable for the pause button.
 player.setPauseDrawable(Drawable);
 player.setPauseDrawableRes(int);
+
+// Sets a theme color used to color the controls and labels. Defaults to your activity's primary theme color.
+player.setThemeColor(int);
+player.setThemeColorRes(int);
 ```
 
 ---
@@ -302,5 +306,6 @@ The programmatic configuration options shown above can also be configured direct
     app:evp_retryText="@string/evp_retry"
     app:evp_rightAction="none"
     app:evp_source="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
-    app:evp_submitText="@string/evp_submit" />
+    app:evp_submitText="@string/evp_submit"
+    app:evp_themeColor="@color/color_primary" />
 ```

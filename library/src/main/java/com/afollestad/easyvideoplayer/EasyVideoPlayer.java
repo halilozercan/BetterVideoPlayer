@@ -13,6 +13,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.CheckResult;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
@@ -121,6 +123,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
     private boolean mControlsDisabled;
+    private int mThemeColor = 0;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -175,9 +178,18 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 mAutoPlay = a.getBoolean(R.styleable.EasyVideoPlayer_evp_autoPlay, false);
                 mControlsDisabled = a.getBoolean(R.styleable.EasyVideoPlayer_evp_disableControls, false);
 
+                mThemeColor = a.getColor(R.styleable.EasyVideoPlayer_evp_themeColor,
+                        Util.resolveColor(context, R.attr.colorPrimary));
             } finally {
                 a.recycle();
             }
+        } else {
+            mLeftAction = LEFT_ACTION_RESTART;
+            mRightAction = RIGHT_ACTION_NONE;
+            mHideControlsOnPlay = true;
+            mAutoPlay = false;
+            mControlsDisabled = false;
+            mThemeColor = Util.resolveColor(context, R.attr.colorPrimary);
         }
 
         if (mRetryText == null)
@@ -290,6 +302,17 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     @Override
     public void setPauseDrawableRes(@DrawableRes int res) {
         setPauseDrawable(ContextCompat.getDrawable(getContext(), res));
+    }
+
+    @Override
+    public void setThemeColor(@ColorInt int color) {
+        mThemeColor = color;
+        invalidateThemeColors();
+    }
+
+    @Override
+    public void setThemeColorRes(@ColorRes int colorRes) {
+        setThemeColor(ContextCompat.getColor(getContext(), colorRes));
     }
 
     @Override
@@ -683,21 +706,18 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         addView(mControlsFrame, controlsLp);
         if (mControlsDisabled)
             mControlsFrame.setVisibility(View.GONE);
-        final int primaryColor = Util.resolveColor(getContext(), R.attr.colorPrimary);
-        final int labelColor = Util.isColorDark(primaryColor) ? Color.WHITE : Color.BLACK;
-        mControlsFrame.setBackgroundColor(Util.adjustAlpha(primaryColor, 0.8f));
 
         // Retrieve controls
         mSeeker = (SeekBar) mControlsFrame.findViewById(R.id.seeker);
         mSeeker.setOnSeekBarChangeListener(this);
 
         mLabelPosition = (TextView) mControlsFrame.findViewById(R.id.position);
-        mLabelPosition.setTextColor(labelColor);
         mLabelPosition.setText(Util.getDurationString(0, false));
 
         mLabelDuration = (TextView) mControlsFrame.findViewById(R.id.duration);
-        mLabelDuration.setTextColor(labelColor);
         mLabelDuration.setText(Util.getDurationString(0, true));
+
+        invalidateThemeColors();
 
         mBtnRestart = (ImageButton) mControlsFrame.findViewById(R.id.btnRestart);
         mBtnRestart.setOnClickListener(this);
@@ -851,5 +871,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         if (mCallback != null)
             mCallback.onError(this, e);
         else throw new RuntimeException(e);
+    }
+
+    private void invalidateThemeColors() {
+        final int labelColor = Util.isColorDark(mThemeColor) ? Color.WHITE : Color.BLACK;
+        mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.8f));
+        mLabelDuration.setTextColor(labelColor);
+        mLabelPosition.setTextColor(labelColor);
     }
 }

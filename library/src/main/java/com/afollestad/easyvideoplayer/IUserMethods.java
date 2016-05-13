@@ -3,6 +3,8 @@ package com.afollestad.easyvideoplayer;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.CheckResult;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -47,6 +49,10 @@ interface IUserMethods {
     void setPauseDrawable(@NonNull Drawable drawable);
 
     void setPauseDrawableRes(@DrawableRes int res);
+
+    void setThemeColor(@ColorInt int color);
+
+    void setThemeColorRes(@ColorRes int colorRes);
 
     void setHideControlsOnPlay(boolean hide);
 
