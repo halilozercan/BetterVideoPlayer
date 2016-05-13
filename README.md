@@ -14,6 +14,14 @@ video playback working.
 
 ---
 
+# Gradle Dependency
+
+[ ![jCenter](https://api.bintray.com/packages/drummer-aidan/maven/easy-video-player/images/download.svg) ](https://bintray.com/drummer-aidan/maven/easy-video-player/_latestVersion)
+[![Build Status](https://travis-ci.org/afollestad/easy-video-player.svg)](https://travis-ci.org/afollestad/easy-video-player)
+[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0.html)
+
+*Coming soon.*
+
 # Getting Started
 
 #### Configuring a Player Activity
