@@ -34,7 +34,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * @author Aidan Follestad (afollestad)
  */
-public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceTextureListener,
+public class EasyVideoPlayer extends FrameLayout implements IUserMethods, TextureView.SurfaceTextureListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener,
         MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnErrorListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
@@ -100,7 +100,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     private int mLeftAction = LEFT_ACTION_RESTART;
     @RightAction
     private int mRightAction = RIGHT_ACTION_NONE;
-    private boolean mHideControlsOnPlay;
+    private boolean mHideControlsOnPlay = true;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
 
@@ -127,40 +127,18 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         // TODO load attributes
     }
 
+    @Override
     public void setSource(@NonNull Uri source) {
         mSource = source;
         if (mPlayer != null) prepare();
     }
 
+    @Override
     public void setCallback(@NonNull EasyVideoCallback callback) {
         mCallback = callback;
     }
 
-    private void invalidateActions() {
-        switch (mLeftAction) {
-            case LEFT_ACTION_NONE:
-                mBtnRetry.setVisibility(View.GONE);
-                mBtnRestart.setVisibility(View.GONE);
-                break;
-            case LEFT_ACTION_RESTART:
-                mBtnRetry.setVisibility(View.GONE);
-                mBtnRestart.setVisibility(View.VISIBLE);
-                break;
-            case LEFT_ACTION_RETRY:
-                mBtnRetry.setVisibility(View.VISIBLE);
-                mBtnRestart.setVisibility(View.GONE);
-                break;
-        }
-        switch (mRightAction) {
-            case RIGHT_ACTION_NONE:
-                mBtnSubmit.setVisibility(View.GONE);
-                break;
-            case RIGHT_ACTION_SUBMIT:
-                mBtnSubmit.setVisibility(View.VISIBLE);
-                break;
-        }
-    }
-
+    @Override
     public void setLeftAction(@LeftAction int action) {
         if (action < LEFT_ACTION_NONE || action > LEFT_ACTION_RETRY)
             throw new IllegalArgumentException("Invalid left action specified.");
@@ -168,6 +146,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         invalidateActions();
     }
 
+    @Override
     public void setRightAction(@RightAction int action) {
         if (action < RIGHT_ACTION_NONE || action > RIGHT_ACTION_SUBMIT)
             throw new IllegalArgumentException("Invalid right action specified.");
@@ -175,14 +154,17 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         invalidateActions();
     }
 
+    @Override
     public void setHideControlsOnPlay(boolean hide) {
         mHideControlsOnPlay = hide;
     }
 
+    @Override
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
     }
 
+    @Override
     public void setInitialPosition(int pos) {
         mInitialPosition = pos;
     }
@@ -207,7 +189,8 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         }
     }
 
-    public void setControlsEnabled(boolean enabled) {
+    private void setControlsEnabled(boolean enabled) {
+        if (mSeeker == null) return;
         mSeeker.setEnabled(enabled);
         mBtnPlayPause.setEnabled(enabled);
         mBtnSubmit.setEnabled(enabled);
@@ -222,8 +205,9 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mClickFrame.setEnabled(enabled);
     }
 
+    @Override
     public void showControls() {
-        if (isControlsShown()) return;
+        if (isControlsShown() || mSeeker == null) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -231,8 +215,9 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
                 .setInterpolator(new DecelerateInterpolator()).start();
     }
 
+    @Override
     public void hideControls() {
-        if (!isControlsShown()) return;
+        if (!isControlsShown() || mSeeker == null) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(1f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -247,10 +232,12 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
                 }).start();
     }
 
+    @Override
     public boolean isControlsShown() {
-        return mControlsFrame.getAlpha() > .5f;
+        return mControlsFrame != null && mControlsFrame.getAlpha() > .5f;
     }
 
+    @Override
     public void toggleControls() {
         if (isControlsShown()) {
             hideControls();
@@ -259,24 +246,29 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         }
     }
 
+    @Override
     public boolean isPrepared() {
         return mPlayer != null && mIsPrepared;
     }
 
+    @Override
     public boolean isPlaying() {
         return mPlayer != null && mPlayer.isPlaying();
     }
 
+    @Override
     public int getCurrentPosition() {
         if (mPlayer == null) return -1;
         return mPlayer.getCurrentPosition();
     }
 
+    @Override
     public int getDuration() {
         if (mPlayer == null) return -1;
         return mPlayer.getDuration();
     }
 
+    @Override
     public void start() {
         if (mPlayer == null) return;
         mPlayer.start();
@@ -285,11 +277,13 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
     }
 
+    @Override
     public void seekTo(int pos) {
         if (mPlayer == null) return;
         mPlayer.seekTo(pos);
     }
 
+    @Override
     public void pause() {
         if (mPlayer == null || !isPlaying()) return;
         mPlayer.pause();
@@ -298,6 +292,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
     }
 
+    @Override
     public void stop() {
         if (mPlayer == null) return;
         try {
@@ -309,6 +304,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
     }
 
+    @Override
     public void reset() {
         if (mPlayer == null) return;
         mIsPrepared = false;
@@ -316,6 +312,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mIsPrepared = false;
     }
 
+    @Override
     public void release() {
         if (mPlayer == null) return;
         mIsPrepared = false;
@@ -609,6 +606,31 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         if (args != null)
             message = String.format(message, args);
         Log.d("EasyVideoPlayer", message);
+    }
+
+    private void invalidateActions() {
+        switch (mLeftAction) {
+            case LEFT_ACTION_NONE:
+                mBtnRetry.setVisibility(View.GONE);
+                mBtnRestart.setVisibility(View.GONE);
+                break;
+            case LEFT_ACTION_RESTART:
+                mBtnRetry.setVisibility(View.GONE);
+                mBtnRestart.setVisibility(View.VISIBLE);
+                break;
+            case LEFT_ACTION_RETRY:
+                mBtnRetry.setVisibility(View.VISIBLE);
+                mBtnRestart.setVisibility(View.GONE);
+                break;
+        }
+        switch (mRightAction) {
+            case RIGHT_ACTION_NONE:
+                mBtnSubmit.setVisibility(View.GONE);
+                break;
+            case RIGHT_ACTION_SUBMIT:
+                mBtnSubmit.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     private void adjustAspectRatio(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {

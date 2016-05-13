@@ -143,6 +143,71 @@ You can see almost identical code in action in the sample project.
 
 ---
 
+# Programmatic Control
+
+Here's a list of methods that can be used to control the `EasyVideoPlayer` view programatically.
+Methods used to change behavior are discussed in the next section.
+
+```java
+EasyVideoPlayer player = // ...
+
+player.setSource(Uri);
+
+player.setCallback(EasyVideoCallback);
+
+player.start();
+
+player.seekTo(int);
+
+player.pause();
+
+player.stop();
+
+player.reset();
+
+player.release();
+
+player.showControls();
+
+player.hideControls().
+
+player.toggleControls();
+
+player.isControlsShown();
+
+player.isPrepared();
+
+player.isPlaying();
+
+player.getCurrentPosition();
+
+player.getDuration();
+```
+
+---
+
 # Configuration
 
-Documentation coming soon enough.
+There are a few options that can be to change the default behavior of the `EasyVideoPlayer`:
+
+```java
+EasyVideoPlayer player = // ...
+
+// EasyVideoPlayer.LEFT_ACTION_NONE:     hides all left actions.
+// EasyVideoPlayer.LEFT_ACTION_RESTART:  the default, shows the skip back to beginning button.
+// EasyVideoPlayer.LEFT_ACTION_RETRY:    shows a textual 'Retry' button, invokes the onRetry() callback method.
+player.setLeftAction(int);
+
+// EasyVideoPlayer.RIGHT_ACTION_NONE:    the default, hides all right actions.
+// EasyVideoPlayer.RIGHT_ACTION_SUBMIT:  shows a textual 'Submit' button, invokes the onSubmit() callback method.
+player.setRightAction(int);
+
+// Defaults to true. The controls fade out when playback starts.
+player.setHideControlsOnPlay(boolean);
+
+// Defaults to false. Immediately starts playback when the player becomes prepared.
+player.setAutoPlay(boolean);
+
+// Sets a position that will be skipped to right when the player becomes prepared. Only happens once when set.
+player.setInitialPosition(int);
+```
