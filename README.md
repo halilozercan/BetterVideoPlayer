@@ -1,20 +1,22 @@
-# Easy Video Player
+## Easy Video Player
 
 Easy Video Player is a simple but powerful view that you can plugin to your apps to quickly get
 video playback working.
 
 <img src="https://raw.githubusercontent.com/afollestad/easy-video-player/master/art/showcase.png" width="400px" />
 
-#### Features
+##### Features
 
 * *Based on the stock MediaPlayer API.* It will work on all devices and all CPUs, and it works with both local and remote sources.
 * *Simple.* Much less code is required than alternative options to get up and running.
 * *Very configurable.* There are lots of options available to make the player behave exactly how you want it to behave.
 * *Adaptive.* The player use the colors of your (AppCompat) Activity theme automatically.
 
+You can download a [sample APK here](https://raw.githubusercontent.com/afollestad/easy-video-player/master/sample.apk).
+
 ---
 
-# Gradle Dependency
+## Gradle Dependency
 
 [ ![jCenter](https://api.bintray.com/packages/drummer-aidan/maven/easy-video-player/images/download.svg) ](https://bintray.com/drummer-aidan/maven/easy-video-player/_latestVersion)
 [![Build Status](https://travis-ci.org/afollestad/easy-video-player.svg)](https://travis-ci.org/afollestad/easy-video-player)
@@ -22,9 +24,9 @@ video playback working.
 
 *Coming soon.*
 
-# Getting Started
+## Getting Started
 
-#### Configuring a Player Activity
+##### Configuring a Player Activity
 
 You will need an `Activity` in your app that will hold the `EasyVideoPlayer` view and playback content.
 There's only a bit of configuration required.
@@ -53,7 +55,7 @@ set `android:configChanges` values to your `Activity` in `AndroidManifest.xml`:*
     android:theme="@style/AppTheme" />   <!-- Don't need to set the theme here if it's set on your <application /> tag already -->
 ```
 
-#### Layouts
+##### Layouts
 
 The layout for your player Activity can be very simple. You only need a `EasyVideoPlayer` view,
 all the controls and everything else are created by the player view itself.
@@ -68,7 +70,7 @@ all the controls and everything else are created by the player view itself.
     tools:context="com.afollestad.easyvideoplayersample.MainActivity" />
 ```
 
-#### Code Setup
+##### Code Setup
 
 Since your `Activity` is using an AppCompat theme, make sure it extends `AppCompatActivity`.
 
@@ -151,7 +153,7 @@ You can see almost identical code in action in the sample project.
 
 ---
 
-# Programmatic Control
+## Programmatic Control
 
 Here's a list of methods that can be used to control the `EasyVideoPlayer` view programatically.
 Methods used to change behavior are discussed in the next section.
@@ -194,7 +196,7 @@ player.getDuration();
 
 ---
 
-# Programmatic Configuration
+## Programmatic Configuration
 
 There are a few options that can be to change the default behavior of the `EasyVideoPlayer`:
 
