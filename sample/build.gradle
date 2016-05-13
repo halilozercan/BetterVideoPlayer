@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.afollestad.easyvideoplayersample"
-        minSdkVersion 16
+        minSdkVersion 14
         targetSdkVersion 23
         versionCode 3
         versionName "0.2.0"
