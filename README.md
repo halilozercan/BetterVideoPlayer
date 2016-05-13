@@ -22,7 +22,20 @@ You can download a [sample APK here](https://raw.githubusercontent.com/afollesta
 [![Build Status](https://travis-ci.org/afollestad/easy-video-player.svg)](https://travis-ci.org/afollestad/easy-video-player)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-*Coming soon.*
+The Gradle dependency is available via [jCenter](https://bintray.com/drummer-aidan/maven/easy-video-player/view).
+jCenter is the default Maven repository used by Android Studio.
+
+### Dependency
+
+Add this in your module's `build.gradle` file:
+
+```gradle
+dependencies {
+    // ... other dependencies
+
+    compile 'com.afollestad:easyvideoplayer:0.1.1'
+}
+```
 
 ## Getting Started
 
@@ -61,13 +74,11 @@ The layout for your player Activity can be very simple. You only need a `EasyVid
 all the controls and everything else are created by the player view itself.
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
 <com.afollestad.easyvideoplayer.EasyVideoPlayer xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/player"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.afollestad.easyvideoplayersample.MainActivity" />
+    android:layout_height="match_parent" />
 ```
 
 ##### Code Setup
@@ -161,36 +172,61 @@ Methods used to change behavior are discussed in the next section.
 ```java
 EasyVideoPlayer player = // ...
 
+// Sets a video source to be played.
 player.setSource(Uri);
 
+// Sets a callback to receive normal player events.
 player.setCallback(EasyVideoCallback);
 
+// Sets a callback that can be used to retrieve updates of the current playback position.
+player.setProgressCallback(EasyVideoProgressCallback);
+
+// Starts or resumes playback.
 player.start();
 
+// Seeks to a position in the video.
 player.seekTo(int);
 
+// Pauses playback.
 player.pause();
 
+// Stops playback.
 player.stop();
 
+// Resets the player, allowing a new source to be set.
 player.reset();
 
+// Releases the underlying MediaPlayer and cleans up resources.
 player.release();
 
+// Shows the default controls. They can be hidden again if the user taps the player.
 player.showControls();
 
+// Hides the default controls. They can be shown again if the user taps the player.
 player.hideControls().
 
+// Shows the controls if they're hidden, hides them if they're shown.
 player.toggleControls();
 
+// Returns true if the default controls are currently shown.
 player.isControlsShown();
 
+// Hide the default controls and prevents them from being shown.
+player.disableControls();
+
+// Undoes disableControls()
+player.enableControls();
+
+// Returns true if the player has prepared for playback entirely
 player.isPrepared();
 
+// Returns true if the player is NOT paused.
 player.isPlaying();
 
+// Returns the current position of playback.
 player.getCurrentPosition();
 
+// Returns the total duration of the video.
 player.getDuration();
 ```
 

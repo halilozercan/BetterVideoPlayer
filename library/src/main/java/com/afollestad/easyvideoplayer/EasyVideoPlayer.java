@@ -10,7 +10,9 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
+import android.support.annotation.CheckResult;
 import android.support.annotation.IntDef;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -96,6 +98,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     private Uri mSource;
     private EasyVideoCallback mCallback;
+    private EasyVideoProgressCallback mProgressCallback;
     @LeftAction
     private int mLeftAction = LEFT_ACTION_RESTART;
     @RightAction
@@ -103,6 +106,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private boolean mHideControlsOnPlay = true;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
+    private boolean mControlsDisabled;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -116,6 +120,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             mLabelDuration.setText(Util.getDurationString(dur - pos, true));
             mSeeker.setProgress(pos);
 
+            if (mProgressCallback != null)
+                mProgressCallback.onVideoProgressUpdate(pos, dur);
             if (mHandler != null)
                 mHandler.postDelayed(this, UPDATE_INTERVAL);
         }
@@ -135,6 +141,11 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     @Override
     public void setCallback(@NonNull EasyVideoCallback callback) {
         mCallback = callback;
+    }
+
+    @Override
+    public void setProgressCallback(@NonNull EasyVideoProgressCallback callback) {
+        mProgressCallback = callback;
     }
 
     @Override
@@ -164,7 +175,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     }
 
     @Override
-    public void setInitialPosition(int pos) {
+    public void setInitialPosition(@IntRange(from = 0, to = Integer.MAX_VALUE) int pos) {
         mInitialPosition = pos;
     }
 
@@ -206,7 +217,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void showControls() {
-        if (isControlsShown() || mSeeker == null) return;
+        if (mControlsDisabled || isControlsShown() || mSeeker == null) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -216,7 +227,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void hideControls() {
-        if (!isControlsShown() || mSeeker == null) return;
+        if (mControlsDisabled || !isControlsShown() || mSeeker == null) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(1f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -231,13 +242,15 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 }).start();
     }
 
+    @CheckResult
     @Override
     public boolean isControlsShown() {
-        return mControlsFrame != null && mControlsFrame.getAlpha() > .5f;
+        return !mControlsDisabled && mControlsFrame != null && mControlsFrame.getAlpha() > .5f;
     }
 
     @Override
     public void toggleControls() {
+        if (mControlsDisabled) return;
         if (isControlsShown()) {
             hideControls();
         } else {
@@ -246,21 +259,37 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     }
 
     @Override
+    public void enableControls(boolean andShow) {
+        mControlsDisabled = false;
+        if (andShow) showControls();
+    }
+
+    @Override
+    public void disableControls() {
+        mControlsDisabled = true;
+        mControlsFrame.setVisibility(View.GONE);
+    }
+
+    @CheckResult
+    @Override
     public boolean isPrepared() {
         return mPlayer != null && mIsPrepared;
     }
 
+    @CheckResult
     @Override
     public boolean isPlaying() {
         return mPlayer != null && mPlayer.isPlaying();
     }
 
+    @CheckResult
     @Override
     public int getCurrentPosition() {
         if (mPlayer == null) return -1;
         return mPlayer.getCurrentPosition();
     }
 
+    @CheckResult
     @Override
     public int getDuration() {
         if (mPlayer == null) return -1;
@@ -277,7 +306,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     }
 
     @Override
-    public void seekTo(int pos) {
+    public void seekTo(@IntRange(from = 0, to = Integer.MAX_VALUE) int pos) {
         if (mPlayer == null) return;
         mPlayer.seekTo(pos);
     }
@@ -461,6 +490,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     protected void onFinishInflate() {
         super.onFinishInflate();
 
+        setKeepScreenOn(true);
+
         mHandler = new Handler();
         mPlayer = new MediaPlayer();
         mPlayer.setOnPreparedListener(this);
@@ -503,6 +534,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         controlsLp.gravity = Gravity.BOTTOM;
         addView(mControlsFrame, controlsLp);
+        if (mControlsDisabled)
+            mControlsFrame.setVisibility(View.GONE);
 
         // Retrieve controls
         mSeeker = (SeekBar) mControlsFrame.findViewById(R.id.seeker);
