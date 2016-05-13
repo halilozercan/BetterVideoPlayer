@@ -194,7 +194,7 @@ player.getDuration();
 
 ---
 
-# Configuration
+# Programmatic Configuration
 
 There are a few options that can be to change the default behavior of the `EasyVideoPlayer`:
 

@@ -57,17 +57,17 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     public EasyVideoPlayer(Context context) {
         super(context);
-        init(context);
+        init();
     }
 
     public EasyVideoPlayer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init();
     }
 
     public EasyVideoPlayer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init();
     }
 
     private TextureView mTextureView;
@@ -122,9 +122,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     };
 
 
-    private void init(Context context) {
+    private void init() {
         setBackgroundColor(Color.BLACK);
-        // TODO load attributes
     }
 
     @Override
