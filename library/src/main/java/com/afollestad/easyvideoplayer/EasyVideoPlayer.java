@@ -482,6 +482,10 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             mHandler = null;
         }
 
+        if (mSurface != null) {
+            mSurface.release();
+            mSurface = null;
+        }
         LOG("Released player and Handler");
     }
 
@@ -753,7 +757,10 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         }
 
         mTextureView = null;
-        mSurface = null;
+        if (mSurface != null) {
+            mSurface.release();
+            mSurface = null;
+        }
 
         mSeeker = null;
         mLabelPosition = null;
