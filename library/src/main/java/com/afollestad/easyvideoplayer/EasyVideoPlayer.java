@@ -470,24 +470,36 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void release() {
-        if (mPlayer == null) return;
         mIsPrepared = false;
 
-        try {
-            mPlayer.release();
-        } catch (Throwable ignored) {
+        if (mPlayer != null) {
+            try {
+                mPlayer.release();
+            } catch (Throwable ignored) {
+            }
+            mPlayer = null;
         }
-        mPlayer = null;
 
         if (mHandler != null) {
             mHandler.removeCallbacks(mUpdateCounters);
             mHandler = null;
         }
 
+        if (mTextureView != null) {
+            try {
+                mTextureView.getSurfaceTexture().release();
+            } catch (Throwable ignored) {
+            }
+        }
+
         if (mSurface != null) {
-            mSurface.release();
+            try {
+                mSurface.release();
+            } catch (Throwable ignored) {
+            }
             mSurface = null;
         }
+
         LOG("Released player and Handler");
     }
 
@@ -752,18 +764,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-
         LOG("Detached from window");
-        if (mPlayer != null) {
-            stop();
-            release();
-        }
-
-        mTextureView = null;
-        if (mSurface != null) {
-            mSurface.release();
-            mSurface = null;
-        }
+        release();
 
         mSeeker = null;
         mLabelPosition = null;
