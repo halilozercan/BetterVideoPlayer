@@ -33,7 +33,7 @@ Add this in your module's `build.gradle` file:
 dependencies {
     // ... other dependencies
 
-    compile 'com.afollestad:easyvideoplayer:0.1.2'
+    compile 'com.afollestad:easyvideoplayer:0.2.0'
 }
 ```
 
@@ -234,7 +234,7 @@ player.getDuration();
 
 ## Programmatic Configuration
 
-There are a few options that can be to change the default behavior of the `EasyVideoPlayer`:
+There are a options that can be used to change the default behavior of the `EasyVideoPlayer`:
 
 ```java
 EasyVideoPlayer player = // ...
@@ -246,6 +246,7 @@ player.setLeftAction(int);
 
 // EasyVideoPlayer.RIGHT_ACTION_NONE:    the default, hides all right actions.
 // EasyVideoPlayer.RIGHT_ACTION_SUBMIT:  shows a textual 'Submit' button, invokes the onSubmit() callback method.
+// EasyVideoPlayer.RIGHT_ACTION_LABEL:   shows a textual label that can be customized with setCustomLabelText(CharSequence) and setCustomLabelTextRes(int);
 player.setRightAction(int);
 
 // Defaults to true. The controls fade out when playback starts.
@@ -256,4 +257,50 @@ player.setAutoPlay(boolean);
 
 // Sets a position that will be skipped to right when the player becomes prepared. Only happens once when set.
 player.setInitialPosition(int);
+
+// Sets a custom string for the left retry action.
+player.setRetryText(CharSequence);
+player.setRetryTextRes(int);
+
+// Sets a custom string for the right submit action.
+player.setSubmitText(CharSequence);
+player.setSubmitTextRes(int);
+
+// Sets a custom drawable for the left restart action.
+player.setRestartDrawable(Drawable);
+player.setRestartDrawableRes(int);
+
+// Sets a custom drawable for the play button.
+player.setPlayDrawable(Drawable);
+player.setPlayDrawableRes(int);
+
+// Sets a custom drawable for the pause button.
+player.setPauseDrawable(Drawable);
+player.setPauseDrawableRes(int);
+```
+
+---
+
+## XML Configuration
+
+The programmatic configuration options shown above can also be configured directly from your layout:
+
+```xml
+<com.afollestad.easyvideoplayer.EasyVideoPlayer xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/player"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:evp_autoPlay="false"
+    app:evp_customLabelText="Custom label text if rightAction is customLabel"
+    app:evp_disableControls="false"
+    app:evp_hideControlsOnPlay="true"
+    app:evp_leftAction="restart"
+    app:evp_pauseDrawable="@drawable/evp_action_pause"
+    app:evp_playDrawable="@drawable/evp_action_play"
+    app:evp_restartDrawable="@drawable/evp_action_restart"
+    app:evp_retryText="@string/evp_retry"
+    app:evp_rightAction="none"
+    app:evp_source="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+    app:evp_submitText="@string/evp_submit" />
 ```

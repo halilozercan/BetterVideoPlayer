@@ -85,4 +85,19 @@
         android:textColor="#fff"
         tools:ignore="ContentDescription" />
 
+    <TextView
+        android:id="@+id/labelCustom"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/button_size"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/position"
+        android:layout_marginEnd="@dimen/content_inset"
+        android:layout_marginRight="@dimen/content_inset"
+        android:fontFamily="sans-serif"
+        android:gravity="center_vertical"
+        android:textColor="#fff"
+        android:textSize="@dimen/text_size_medium"
+        tools:text="-00:30" />
+
 </RelativeLayout>

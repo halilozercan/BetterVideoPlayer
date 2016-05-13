@@ -1,9 +1,13 @@
 package com.afollestad.easyvideoplayer;
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.CheckResult;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 
 /**
  * @author Aidan Follestad (afollestad)
@@ -19,6 +23,30 @@ interface IUserMethods {
     void setLeftAction(@EasyVideoPlayer.LeftAction int action);
 
     void setRightAction(@EasyVideoPlayer.RightAction int action);
+
+    void setCustomLabelText(@NonNull CharSequence text);
+
+    void setCustomLabelTextRes(@StringRes int textRes);
+
+    void setRetryText(@Nullable CharSequence text);
+
+    void setRetryTextRes(@StringRes int res);
+
+    void setSubmitText(@Nullable CharSequence text);
+
+    void setSubmitTextRes(@StringRes int res);
+
+    void setRestartDrawable(@NonNull Drawable drawable);
+
+    void setRestartDrawableRes(@DrawableRes int res);
+
+    void setPlayDrawable(@NonNull Drawable drawable);
+
+    void setPlayDrawableRes(@DrawableRes int res);
+
+    void setPauseDrawable(@NonNull Drawable drawable);
+
+    void setPauseDrawableRes(@DrawableRes int res);
 
     void setHideControlsOnPlay(boolean hide);
 

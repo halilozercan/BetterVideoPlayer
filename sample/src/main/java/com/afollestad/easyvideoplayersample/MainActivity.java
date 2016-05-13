@@ -12,8 +12,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 public class MainActivity extends AppCompatActivity implements EasyVideoCallback {
 
-    private static final String TEST_URL = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
-
     private EasyVideoPlayer player;
 
     @Override
@@ -24,8 +22,7 @@ public class MainActivity extends AppCompatActivity implements EasyVideoCallback
         player = (EasyVideoPlayer) findViewById(R.id.player);
         assert player != null;
         player.setCallback(this);
-        player.setSource(Uri.parse(TEST_URL));
-        player.setAutoPlay(true);
+        // All further configuration is done from the XML layout.
     }
 
     @Override

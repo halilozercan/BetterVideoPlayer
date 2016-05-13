@@ -3,17 +3,23 @@ package com.afollestad.easyvideoplayer;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.CheckResult;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -45,7 +51,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public @interface LeftAction {
     }
 
-    @IntDef({RIGHT_ACTION_NONE, RIGHT_ACTION_SUBMIT})
+    @IntDef({RIGHT_ACTION_NONE, RIGHT_ACTION_SUBMIT, RIGHT_ACTION_CUSTOM_LABEL})
     @Retention(RetentionPolicy.SOURCE)
     public @interface RightAction {
     }
@@ -55,21 +61,22 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public static final int LEFT_ACTION_RETRY = 2;
     public static final int RIGHT_ACTION_NONE = 3;
     public static final int RIGHT_ACTION_SUBMIT = 4;
+    public static final int RIGHT_ACTION_CUSTOM_LABEL = 5;
     private static final int UPDATE_INTERVAL = 200;
 
     public EasyVideoPlayer(Context context) {
         super(context);
-        init();
+        init(context, null);
     }
 
     public EasyVideoPlayer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context, attrs);
     }
 
     public EasyVideoPlayer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(context, attrs);
     }
 
     private TextureView mTextureView;
@@ -86,6 +93,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private Button mBtnRetry;
     private ImageButton mBtnPlayPause;
     private Button mBtnSubmit;
+    private TextView mLabelCustom;
 
     private MediaPlayer mPlayer;
     private boolean mSurfaceAvailable;
@@ -103,6 +111,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private int mLeftAction = LEFT_ACTION_RESTART;
     @RightAction
     private int mRightAction = RIGHT_ACTION_NONE;
+    private CharSequence mRetryText;
+    private CharSequence mSubmitText;
+    private Drawable mRestartDrawable;
+    private Drawable mPlayDrawable;
+    private Drawable mPauseDrawable;
+    private CharSequence mCustomLabelText;
     private boolean mHideControlsOnPlay = true;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
@@ -128,8 +142,53 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     };
 
 
-    private void init() {
+    private void init(Context context, AttributeSet attrs) {
         setBackgroundColor(Color.BLACK);
+
+        if (attrs != null) {
+            TypedArray a = context.getTheme().obtainStyledAttributes(
+                    attrs,
+                    R.styleable.EasyVideoPlayer,
+                    0, 0);
+            try {
+
+                String source = a.getString(R.styleable.EasyVideoPlayer_evp_source);
+                if (source != null && !source.trim().isEmpty())
+                    mSource = Uri.parse(source);
+
+                //noinspection WrongConstant
+                mLeftAction = a.getInteger(R.styleable.EasyVideoPlayer_evp_leftAction, LEFT_ACTION_RESTART);
+                //noinspection WrongConstant
+                mRightAction = a.getInteger(R.styleable.EasyVideoPlayer_evp_rightAction, RIGHT_ACTION_NONE);
+
+                mCustomLabelText = a.getText(R.styleable.EasyVideoPlayer_evp_customLabelText);
+                mRetryText = a.getText(R.styleable.EasyVideoPlayer_evp_retryText);
+                mSubmitText = a.getText(R.styleable.EasyVideoPlayer_evp_submitText);
+
+                mRestartDrawable = a.getDrawable(R.styleable.EasyVideoPlayer_evp_restartDrawable);
+                mPlayDrawable = a.getDrawable(R.styleable.EasyVideoPlayer_evp_playDrawable);
+                mPauseDrawable = a.getDrawable(R.styleable.EasyVideoPlayer_evp_pauseDrawable);
+
+                mHideControlsOnPlay = a.getBoolean(R.styleable.EasyVideoPlayer_evp_hideControlsOnPlay, true);
+                mAutoPlay = a.getBoolean(R.styleable.EasyVideoPlayer_evp_autoPlay, false);
+                mControlsDisabled = a.getBoolean(R.styleable.EasyVideoPlayer_evp_disableControls, false);
+
+            } finally {
+                a.recycle();
+            }
+        }
+
+        if (mRetryText == null)
+            mRetryText = context.getResources().getText(R.string.evp_retry);
+        if (mSubmitText == null)
+            mSubmitText = context.getResources().getText(R.string.evp_submit);
+
+        if (mRestartDrawable == null)
+            mRestartDrawable = ContextCompat.getDrawable(context, R.drawable.evp_action_restart);
+        if (mPlayDrawable == null)
+            mPlayDrawable = ContextCompat.getDrawable(context, R.drawable.evp_action_play);
+        if (mPauseDrawable == null)
+            mPauseDrawable = ContextCompat.getDrawable(context, R.drawable.evp_action_pause);
     }
 
     @Override
@@ -158,10 +217,77 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void setRightAction(@RightAction int action) {
-        if (action < RIGHT_ACTION_NONE || action > RIGHT_ACTION_SUBMIT)
+        if (action < RIGHT_ACTION_NONE || action > RIGHT_ACTION_CUSTOM_LABEL)
             throw new IllegalArgumentException("Invalid right action specified.");
         mRightAction = action;
         invalidateActions();
+    }
+
+    @Override
+    public void setCustomLabelText(@NonNull CharSequence text) {
+        mCustomLabelText = text;
+        mLabelCustom.setText(text);
+        setRightAction(RIGHT_ACTION_CUSTOM_LABEL);
+    }
+
+    @Override
+    public void setCustomLabelTextRes(@StringRes int textRes) {
+        setCustomLabelText(getResources().getText(textRes));
+    }
+
+    @Override
+    public void setRetryText(@Nullable CharSequence text) {
+        mRetryText = text;
+        mBtnRetry.setText(text);
+    }
+
+    @Override
+    public void setRetryTextRes(@StringRes int res) {
+        setRetryText(getResources().getText(res));
+    }
+
+    @Override
+    public void setSubmitText(@Nullable CharSequence text) {
+        mSubmitText = text;
+        mBtnSubmit.setText(text);
+    }
+
+    @Override
+    public void setSubmitTextRes(@StringRes int res) {
+        setSubmitText(getResources().getText(res));
+    }
+
+    @Override
+    public void setRestartDrawable(@NonNull Drawable drawable) {
+        mRestartDrawable = drawable;
+        mBtnRestart.setImageDrawable(drawable);
+    }
+
+    @Override
+    public void setRestartDrawableRes(@DrawableRes int res) {
+        setRestartDrawable(ContextCompat.getDrawable(getContext(), res));
+    }
+
+    @Override
+    public void setPlayDrawable(@NonNull Drawable drawable) {
+        mPlayDrawable = drawable;
+        if (!isPlaying()) mBtnPlayPause.setImageDrawable(drawable);
+    }
+
+    @Override
+    public void setPlayDrawableRes(@DrawableRes int res) {
+        setPlayDrawable(ContextCompat.getDrawable(getContext(), res));
+    }
+
+    @Override
+    public void setPauseDrawable(@NonNull Drawable drawable) {
+        mPauseDrawable = drawable;
+        if (isPlaying()) mBtnPlayPause.setImageDrawable(drawable);
+    }
+
+    @Override
+    public void setPauseDrawableRes(@DrawableRes int res) {
+        setPauseDrawable(ContextCompat.getDrawable(getContext(), res));
     }
 
     @Override
@@ -302,7 +428,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mPlayer.start();
         if (mHandler == null) mHandler = new Handler();
         mHandler.post(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
+        mBtnPlayPause.setImageDrawable(mPauseDrawable);
     }
 
     @Override
@@ -317,7 +443,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mPlayer.pause();
         if (mHandler == null) return;
         mHandler.removeCallbacks(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
+        mBtnPlayPause.setImageDrawable(mPlayDrawable);
     }
 
     @Override
@@ -329,7 +455,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         }
         if (mHandler == null) return;
         mHandler.removeCallbacks(mUpdateCounters);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_pause);
+        mBtnPlayPause.setImageDrawable(mPauseDrawable);
     }
 
     @Override
@@ -409,6 +535,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         setControlsEnabled(true);
 
         if (mAutoPlay) {
+            if (!mControlsDisabled && mHideControlsOnPlay)
+                hideControls();
             start();
             if (mInitialPosition > 0) {
                 seekTo(mInitialPosition);
@@ -437,7 +565,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         LOG("onCompletion()");
         if (mCallback != null)
             mCallback.onCompletion(this);
-        mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
+        mBtnPlayPause.setImageDrawable(mPlayDrawable);
         if (mHandler != null)
             mHandler.removeCallbacks(mUpdateCounters);
         showControls();
@@ -536,30 +664,42 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         addView(mControlsFrame, controlsLp);
         if (mControlsDisabled)
             mControlsFrame.setVisibility(View.GONE);
+        final int primaryColor = Util.resolveColor(getContext(), R.attr.colorPrimary);
+        final int labelColor = Util.isColorDark(primaryColor) ? Color.WHITE : Color.BLACK;
+        mControlsFrame.setBackgroundColor(Util.adjustAlpha(primaryColor, 0.8f));
 
         // Retrieve controls
         mSeeker = (SeekBar) mControlsFrame.findViewById(R.id.seeker);
-        mLabelPosition = (TextView) mControlsFrame.findViewById(R.id.position);
-        mLabelDuration = (TextView) mControlsFrame.findViewById(R.id.duration);
-        mBtnRestart = (ImageButton) mControlsFrame.findViewById(R.id.btnRestart);
-        mBtnRestart.setOnClickListener(this);
-        mBtnRetry = (Button) mControlsFrame.findViewById(R.id.btnRetry);
-        mBtnRetry.setOnClickListener(this);
-        mBtnPlayPause = (ImageButton) mControlsFrame.findViewById(R.id.btnPlayPause);
-        mBtnPlayPause.setOnClickListener(this);
-        mBtnSubmit = (Button) mControlsFrame.findViewById(R.id.btnSubmit);
-        mBtnSubmit.setOnClickListener(this);
         mSeeker.setOnSeekBarChangeListener(this);
-        setControlsEnabled(false);
 
-        final int primaryColor = Util.resolveColor(getContext(), R.attr.colorPrimary);
-        mControlsFrame.setBackgroundColor(Util.adjustAlpha(primaryColor, 0.8f));
-        final int labelColor = Util.isColorDark(primaryColor) ? Color.WHITE : Color.BLACK;
+        mLabelPosition = (TextView) mControlsFrame.findViewById(R.id.position);
         mLabelPosition.setTextColor(labelColor);
         mLabelPosition.setText(Util.getDurationString(0, false));
+
+        mLabelDuration = (TextView) mControlsFrame.findViewById(R.id.duration);
         mLabelDuration.setTextColor(labelColor);
         mLabelDuration.setText(Util.getDurationString(0, true));
 
+        mBtnRestart = (ImageButton) mControlsFrame.findViewById(R.id.btnRestart);
+        mBtnRestart.setOnClickListener(this);
+        mBtnRestart.setImageDrawable(mRestartDrawable);
+
+        mBtnRetry = (Button) mControlsFrame.findViewById(R.id.btnRetry);
+        mBtnRetry.setOnClickListener(this);
+        mBtnRetry.setText(mRetryText);
+
+        mBtnPlayPause = (ImageButton) mControlsFrame.findViewById(R.id.btnPlayPause);
+        mBtnPlayPause.setOnClickListener(this);
+        mBtnPlayPause.setImageDrawable(mPlayDrawable);
+
+        mBtnSubmit = (Button) mControlsFrame.findViewById(R.id.btnSubmit);
+        mBtnSubmit.setOnClickListener(this);
+        mBtnSubmit.setText(mSubmitText);
+
+        mLabelCustom = (TextView) mControlsFrame.findViewById(R.id.labelCustom);
+        mLabelCustom.setText(mCustomLabelText);
+
+        setControlsEnabled(false);
         invalidateActions();
         prepare();
     }
@@ -570,7 +710,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             if (mPlayer.isPlaying()) {
                 pause();
             } else {
-                if (mHideControlsOnPlay)
+                if (mHideControlsOnPlay && !mControlsDisabled)
                     hideControls();
                 start();
             }
@@ -658,9 +798,15 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         switch (mRightAction) {
             case RIGHT_ACTION_NONE:
                 mBtnSubmit.setVisibility(View.GONE);
+                mLabelCustom.setVisibility(View.GONE);
                 break;
             case RIGHT_ACTION_SUBMIT:
                 mBtnSubmit.setVisibility(View.VISIBLE);
+                mLabelCustom.setVisibility(View.GONE);
+                break;
+            case RIGHT_ACTION_CUSTOM_LABEL:
+                mBtnSubmit.setVisibility(View.GONE);
+                mLabelCustom.setVisibility(View.VISIBLE);
                 break;
         }
     }
