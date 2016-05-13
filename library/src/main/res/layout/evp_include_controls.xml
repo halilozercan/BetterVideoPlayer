@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#BF000000"
+    android:clickable="true"
     android:paddingBottom="@dimen/content_inset_less"
     android:paddingLeft="@dimen/content_inset_less"
     android:paddingRight="@dimen/content_inset_less"
