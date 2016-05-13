@@ -12,20 +12,27 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 public class MainActivity extends AppCompatActivity implements EasyVideoCallback {
 
-    // Fill this in for testing
-    private static final String TEST_URL = "";
+    private static final String TEST_URL = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
 
-    private EasyVideoPlayer mPlayer;
+    private EasyVideoPlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mPlayer = (EasyVideoPlayer) findViewById(R.id.player);
-        assert mPlayer != null;
-        mPlayer.setCallback(this);
-        mPlayer.setSource(Uri.parse(TEST_URL));
+        player = (EasyVideoPlayer) findViewById(R.id.player);
+        assert player != null;
+        player.setCallback(this);
+        player.setSource(Uri.parse(TEST_URL));
+        player.setAutoPlay(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (player.isPlaying())
+            player.pause();
     }
 
     @Override
@@ -59,12 +66,12 @@ public class MainActivity extends AppCompatActivity implements EasyVideoCallback
     }
 
     @Override
-    public void onRetry(EasyVideoPlayer player) {
+    public void onRetry(EasyVideoPlayer player, Uri source) {
         Toast.makeText(this, "Retry", Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onSubmit(EasyVideoPlayer player) {
+    public void onSubmit(EasyVideoPlayer player, Uri source) {
         Toast.makeText(this, "Submit", Toast.LENGTH_SHORT).show();
     }
 }

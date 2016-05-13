@@ -36,7 +36,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceTextureListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnErrorListener, View.OnClickListener {
+        MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnErrorListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
     @IntDef({LEFT_ACTION_NONE, LEFT_ACTION_RESTART, LEFT_ACTION_RETRY})
     @Retention(RetentionPolicy.SOURCE)
@@ -88,6 +88,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     private MediaPlayer mPlayer;
     private boolean mSurfaceAvailable;
     private boolean mIsPrepared;
+    private boolean mWasPlaying;
     private int mInitialTextureWidth;
     private int mInitialTextureHeight;
 
@@ -99,6 +100,8 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     private int mLeftAction = LEFT_ACTION_RESTART;
     @RightAction
     private int mRightAction = RIGHT_ACTION_NONE;
+    private boolean mHideControlsOnPlay;
+    private boolean mAutoPlay;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -119,6 +122,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
 
 
     private void init(Context context) {
+        setBackgroundColor(Color.BLACK);
         // TODO
     }
 
@@ -168,6 +172,14 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
             throw new IllegalArgumentException("Invalid right action specified.");
         mRightAction = action;
         invalidateActions();
+    }
+
+    public void setHideControlsOnPlay(boolean hide) {
+        mHideControlsOnPlay = hide;
+    }
+
+    public void setAutoPlay(boolean autoPlay) {
+        mAutoPlay = autoPlay;
     }
 
     @Override
@@ -229,6 +241,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mBtnPlayPause.setOnClickListener(this);
         mBtnSubmit = (Button) mControlsFrame.findViewById(R.id.btnSubmit);
         mBtnSubmit.setOnClickListener(this);
+        mSeeker.setOnSeekBarChangeListener(this);
         setControlsEnabled(false);
 
         final int primaryColor = Util.resolveColor(getContext(), R.attr.colorPrimary);
@@ -267,6 +280,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mBtnPlayPause.setEnabled(enabled);
         mBtnSubmit.setEnabled(enabled);
         mBtnRestart.setEnabled(enabled);
+        mBtnRetry.setEnabled(false);
 
         final float disabledAlpha = .4f;
         mBtnPlayPause.setAlpha(enabled ? 1f : disabledAlpha);
@@ -277,6 +291,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     }
 
     public void showControls() {
+        if (isControlsShown()) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -285,6 +300,7 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     }
 
     public void hideControls() {
+        if (!isControlsShown()) return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(1f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -342,7 +358,11 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     }
 
     public boolean isPrepared() {
-        return mIsPrepared;
+        return mPlayer != null && mIsPrepared;
+    }
+
+    public boolean isPlaying() {
+        return mPlayer != null && mPlayer.isPlaying();
     }
 
     public void start() {
@@ -398,11 +418,15 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
             mHandler.removeCallbacks(mUpdateCounters);
             mHandler = null;
         }
+
+        LOG("Released player and Handler");
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+
+        LOG("Detached from window");
         if (mPlayer != null) {
             stop();
             release();
@@ -473,9 +497,13 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         mSeeker.setMax(mediaPlayer.getDuration());
         setControlsEnabled(true);
 
-        // Hack to show first frame, is there another way?
-        mPlayer.start();
-        mPlayer.pause();
+        if (mAutoPlay) {
+            start();
+        } else {
+            // Hack to show first frame, is there another way?
+            mPlayer.start();
+            mPlayer.pause();
+        }
     }
 
     @Override
@@ -483,6 +511,10 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         LOG("Buffering: %d%%", percent);
         if (mCallback != null)
             mCallback.onBuffering(percent);
+        if (mSeeker != null) {
+            if (percent == 100) mSeeker.setSecondaryProgress(0);
+            else mSeeker.setSecondaryProgress(mSeeker.getMax() * (percent / 100));
+        }
     }
 
     @Override
@@ -491,6 +523,9 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         if (mCallback != null)
             mCallback.onCompletion(this);
         mBtnPlayPause.setImageResource(R.drawable.evp_action_play);
+        if (mHandler != null)
+            mHandler.removeCallbacks(mUpdateCounters);
+        showControls();
     }
 
     @Override
@@ -508,6 +543,9 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
         }
         String errorMsg = "Preparation/playback error (" + what + "): ";
         switch (what) {
+            default:
+                errorMsg += "Unknown error";
+                break;
             case MediaPlayer.MEDIA_ERROR_IO:
                 errorMsg += "I/O error";
                 break;
@@ -534,18 +572,39 @@ public class EasyVideoPlayer extends FrameLayout implements TextureView.SurfaceT
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.btnPlayPause) {
-            if (mPlayer.isPlaying()) pause();
-            else start();
+            if (mPlayer.isPlaying()) {
+                pause();
+            } else {
+                if (mHideControlsOnPlay)
+                    hideControls();
+                start();
+            }
         } else if (view.getId() == R.id.btnRestart) {
-            mPlayer.seekTo(0);
-            mPlayer.start();
+            seekTo(0);
+            if (!isPlaying()) start();
         } else if (view.getId() == R.id.btnRetry) {
             if (mCallback != null)
-                mCallback.onRetry(this);
+                mCallback.onRetry(this, mSource);
         } else if (view.getId() == R.id.btnSubmit) {
             if (mCallback != null)
-                mCallback.onSubmit(this);
+                mCallback.onSubmit(this, mSource);
         }
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+        if (fromUser) seekTo(value);
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        mWasPlaying = isPlaying();
+        if (mWasPlaying) mPlayer.pause(); // keeps the time updater running, unlike pause()
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        if (mWasPlaying) mPlayer.start();
     }
 
     private static void LOG(String message, Object... args) {
