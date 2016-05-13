@@ -128,11 +128,13 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         public void run() {
             if (mHandler == null || !mIsPrepared || mSeeker == null || mPlayer == null)
                 return;
-            final int pos = mPlayer.getCurrentPosition();
+            int pos = mPlayer.getCurrentPosition();
             final int dur = mPlayer.getDuration();
+            if (pos > dur) pos = dur;
             mLabelPosition.setText(Util.getDurationString(pos, false));
             mLabelDuration.setText(Util.getDurationString(dur - pos, true));
             mSeeker.setProgress(pos);
+            mSeeker.setMax(dur);
 
             if (mProgressCallback != null)
                 mProgressCallback.onVideoProgressUpdate(pos, dur);
@@ -572,6 +574,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mBtnPlayPause.setImageDrawable(mPlayDrawable);
         if (mHandler != null)
             mHandler.removeCallbacks(mUpdateCounters);
+        mSeeker.setProgress(mSeeker.getMax());
         showControls();
     }
 
