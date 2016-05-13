@@ -7,9 +7,10 @@ video playback working.
 
 #### Features
 
-* Based on the stock MediaPlayer API. It will work on all devices and all CPUs, and it works with both local and remote sources.
-* Very configurable. there are lots of options available to make the player behave exactly how you want it to behave.
-* Adaptive. The player controls use the colors of your (AppCompat) Activity theme automatically.
+* *Based on the stock MediaPlayer API.* It will work on all devices and all CPUs, and it works with both local and remote sources.
+* *Simple.* Much less code is required than alternative options to get up and running.
+* *Very configurable.* There are lots of options available to make the player behave exactly how you want it to behave.
+* *Adaptive.* The player use the colors of your (AppCompat) Activity theme automatically.
 
 ---
 
