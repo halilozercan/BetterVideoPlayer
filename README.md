@@ -33,7 +33,7 @@ Add this in your module's `build.gradle` file:
 dependencies {
     // ... other dependencies
 
-    compile 'com.afollestad:easyvideoplayer:0.2.4'
+    compile 'com.afollestad:easyvideoplayer:0.2.5'
 }
 ```
 
@@ -281,6 +281,9 @@ player.setPauseDrawableRes(int);
 // Sets a theme color used to color the controls and labels. Defaults to your activity's primary theme color.
 player.setThemeColor(int);
 player.setThemeColorRes(int);
+
+// Sets the left and right volume levels. The player must be prepared first.
+player.setVolume(float, float);
 ```
 
 ---

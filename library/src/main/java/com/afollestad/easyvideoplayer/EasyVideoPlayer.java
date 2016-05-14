@@ -16,6 +16,7 @@ import android.support.annotation.CheckResult;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.FloatRange;
 import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -63,7 +64,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public static final int RIGHT_ACTION_NONE = 3;
     public static final int RIGHT_ACTION_SUBMIT = 4;
     public static final int RIGHT_ACTION_CUSTOM_LABEL = 5;
-    private static final int UPDATE_INTERVAL = 200;
+    private static final int UPDATE_INTERVAL = 100;
 
     public EasyVideoPlayer(Context context) {
         super(context);
@@ -429,12 +430,21 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public void enableControls(boolean andShow) {
         mControlsDisabled = false;
         if (andShow) showControls();
+        mClickFrame.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleControls();
+            }
+        });
+        mClickFrame.setClickable(true);
     }
 
     @Override
     public void disableControls() {
         mControlsDisabled = true;
         mControlsFrame.setVisibility(View.GONE);
+        mClickFrame.setOnClickListener(null);
+        mClickFrame.setClickable(false);
     }
 
     @CheckResult
@@ -476,6 +486,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public void seekTo(@IntRange(from = 0, to = Integer.MAX_VALUE) int pos) {
         if (mPlayer == null) return;
         mPlayer.seekTo(pos);
+    }
+
+    public void setVolume(@FloatRange(from = 0f, to = 1f) float leftVolume, @FloatRange(from = 0f, to = 1f) float rightVolume) {
+        if (mPlayer == null || !mIsPrepared)
+            throw new IllegalStateException("You cannot use setVolume(float, float) until the player is prepared.");
+        mPlayer.setVolume(leftVolume, rightVolume);
     }
 
     @Override
@@ -707,12 +723,6 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         ((FrameLayout) mClickFrame).setForeground(Util.resolveDrawable(getContext(), R.attr.selectableItemBackground));
         addView(mClickFrame, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-        mClickFrame.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggleControls();
-            }
-        });
 
         // Inflate controls
         mControlsFrame = li.inflate(R.layout.evp_include_controls, this, false);
@@ -720,8 +730,17 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         controlsLp.gravity = Gravity.BOTTOM;
         addView(mControlsFrame, controlsLp);
-        if (mControlsDisabled)
+        if (mControlsDisabled) {
+            mClickFrame.setOnClickListener(null);
             mControlsFrame.setVisibility(View.GONE);
+        } else {
+            mClickFrame.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    toggleControls();
+                }
+            });
+        }
 
         // Retrieve controls
         mSeeker = (SeekBar) mControlsFrame.findViewById(R.id.seeker);
