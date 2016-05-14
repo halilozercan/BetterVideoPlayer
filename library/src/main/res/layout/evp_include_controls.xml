@@ -5,27 +5,27 @@
     android:layout_height="wrap_content"
     android:background="#BF000000"
     android:clickable="true"
-    android:paddingBottom="@dimen/content_inset_less"
-    android:paddingLeft="@dimen/content_inset_less"
-    android:paddingRight="@dimen/content_inset_less"
-    android:paddingTop="@dimen/content_inset_less">
+    android:paddingBottom="@dimen/evp_content_inset_half"
+    android:paddingTop="@dimen/evp_content_inset">
 
     <SeekBar
         android:id="@+id/seeker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/content_inset_small" />
+        android:layout_marginLeft="@dimen/evp_content_inset_less"
+        android:layout_marginRight="@dimen/evp_content_inset_less" />
 
     <TextView
         android:id="@+id/position"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/seeker"
-        android:layout_marginLeft="@dimen/content_inset"
-        android:layout_marginStart="@dimen/content_inset"
+        android:layout_marginLeft="@dimen/evp_content_inset"
+        android:layout_marginStart="@dimen/evp_content_inset"
         android:fontFamily="sans-serif"
         android:textColor="#fff"
-        android:textSize="@dimen/text_size_small"
+        android:textSize="@dimen/evp_text_size_small"
+        tools:ignore="UnusedAttribute"
         tools:text="00:00" />
 
     <TextView
@@ -35,69 +35,86 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/seeker"
-        android:layout_marginEnd="@dimen/content_inset"
-        android:layout_marginRight="@dimen/content_inset"
+        android:layout_marginEnd="@dimen/evp_content_inset"
+        android:layout_marginRight="@dimen/evp_content_inset"
         android:fontFamily="sans-serif"
         android:textColor="#fff"
-        android:textSize="@dimen/text_size_small"
+        android:textSize="@dimen/evp_text_size_small"
+        tools:ignore="UnusedAttribute"
         tools:text="-05:00" />
 
     <ImageButton
         android:id="@+id/btnRestart"
-        android:layout_width="@dimen/button_size"
-        android:layout_height="@dimen/button_size"
+        android:layout_width="@dimen/evp_button_size"
+        android:layout_height="@dimen/evp_button_size"
         android:layout_below="@+id/position"
+        android:layout_marginLeft="@dimen/evp_content_inset_iconbuttons"
+        android:layout_marginStart="@dimen/evp_content_inset_iconbuttons"
         android:background="?selectableItemBackground"
+        android:paddingLeft="@dimen/evp_button_size"
+        android:paddingRight="@dimen/evp_button_size"
         android:src="@drawable/evp_action_restart"
         tools:ignore="ContentDescription" />
 
-    <Button
+    <TextView
         android:id="@+id/btnRetry"
-        style="?borderlessButtonStyle"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_size"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/position"
         android:background="?selectableItemBackground"
+        android:clickable="true"
+        android:gravity="center"
+        android:minHeight="@dimen/evp_button_size"
+        android:paddingLeft="@dimen/evp_content_inset"
+        android:paddingRight="@dimen/evp_content_inset"
         android:text="@string/evp_retry"
         android:textColor="#fff"
+        android:textSize="@dimen/evp_text_size_medium"
         tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/btnPlayPause"
-        android:layout_width="@dimen/button_size"
-        android:layout_height="@dimen/button_size"
+        android:layout_width="@dimen/evp_button_size"
+        android:layout_height="@dimen/evp_button_size"
         android:layout_below="@+id/position"
         android:layout_centerHorizontal="true"
         android:background="?selectableItemBackground"
         android:src="@drawable/evp_action_play"
         tools:ignore="ContentDescription" />
 
-    <Button
+    <TextView
         android:id="@+id/btnSubmit"
         style="?borderlessButtonStyle"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_size"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/position"
         android:background="?selectableItemBackground"
+        android:gravity="center"
+        android:minHeight="@dimen/evp_button_size"
+        android:paddingLeft="@dimen/evp_content_inset"
+        android:paddingRight="@dimen/evp_content_inset"
         android:text="@string/evp_submit"
         android:textColor="#fff"
+        android:textSize="@dimen/evp_text_size_medium"
         tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/labelCustom"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_size"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/position"
-        android:layout_marginEnd="@dimen/content_inset"
-        android:layout_marginRight="@dimen/content_inset"
+        android:layout_marginEnd="@dimen/evp_content_inset"
+        android:layout_marginRight="@dimen/evp_content_inset"
         android:fontFamily="sans-serif"
         android:gravity="center_vertical"
+        android:minHeight="@dimen/evp_button_size"
         android:textColor="#fff"
-        android:textSize="@dimen/text_size_medium"
+        android:textSize="@dimen/evp_text_size_medium"
+        tools:ignore="UnusedAttribute"
         tools:text="-00:30" />
 
 </RelativeLayout>

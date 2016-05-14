@@ -13,6 +13,6 @@
     app:evp_playDrawable="@drawable/evp_action_play"
     app:evp_restartDrawable="@drawable/evp_action_restart"
     app:evp_retryText="@string/evp_retry"
-    app:evp_rightAction="none"
+    app:evp_rightAction="submit"
     app:evp_source="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
     app:evp_submitText="@string/evp_submit" />

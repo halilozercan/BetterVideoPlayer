@@ -31,7 +31,6 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -92,9 +91,9 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private TextView mLabelPosition;
     private TextView mLabelDuration;
     private ImageButton mBtnRestart;
-    private Button mBtnRetry;
+    private TextView mBtnRetry;
     private ImageButton mBtnPlayPause;
-    private Button mBtnSubmit;
+    private TextView mBtnSubmit;
     private TextView mLabelCustom;
 
     private MediaPlayer mPlayer;
@@ -356,7 +355,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mBtnPlayPause.setEnabled(enabled);
         mBtnSubmit.setEnabled(enabled);
         mBtnRestart.setEnabled(enabled);
-        mBtnRetry.setEnabled(false);
+        mBtnRetry.setEnabled(enabled);
 
         final float disabledAlpha = .4f;
         mBtnPlayPause.setAlpha(enabled ? 1f : disabledAlpha);
@@ -723,7 +722,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mBtnRestart.setOnClickListener(this);
         mBtnRestart.setImageDrawable(mRestartDrawable);
 
-        mBtnRetry = (Button) mControlsFrame.findViewById(R.id.btnRetry);
+        mBtnRetry = (TextView) mControlsFrame.findViewById(R.id.btnRetry);
         mBtnRetry.setOnClickListener(this);
         mBtnRetry.setText(mRetryText);
 
@@ -731,7 +730,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mBtnPlayPause.setOnClickListener(this);
         mBtnPlayPause.setImageDrawable(mPlayDrawable);
 
-        mBtnSubmit = (Button) mControlsFrame.findViewById(R.id.btnSubmit);
+        mBtnSubmit = (TextView) mControlsFrame.findViewById(R.id.btnSubmit);
         mBtnSubmit.setOnClickListener(this);
         mBtnSubmit.setText(mSubmitText);
 
@@ -875,7 +874,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     private void invalidateThemeColors() {
         final int labelColor = Util.isColorDark(mThemeColor) ? Color.WHITE : Color.BLACK;
-        mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.8f));
+        mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.9f));
         mLabelDuration.setTextColor(labelColor);
         mLabelPosition.setTextColor(labelColor);
     }
