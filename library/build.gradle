@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.afollestad'
     PUBLISH_ARTIFACT_ID = 'easyvideoplayer'
-    PUBLISH_VERSION = '0.2.3'
+    PUBLISH_VERSION = '0.2.4'
 }
 
 android {
