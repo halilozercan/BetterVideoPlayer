@@ -3,7 +3,7 @@
 
     <dimen name="evp_content_inset">16dp</dimen>
     <dimen name="evp_content_inset_half">8dp</dimen>
-    <dimen name="evp_content_inset_less">6dp</dimen>
+    <dimen name="evp_content_inset_less">1dp</dimen>
     <dimen name="evp_content_inset_iconbuttons">2dp</dimen>
 
     <dimen name="evp_text_size_small">10sp</dimen>
