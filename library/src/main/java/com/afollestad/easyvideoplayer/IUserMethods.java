@@ -26,9 +26,13 @@ interface IUserMethods {
 
     void setRightAction(@EasyVideoPlayer.RightAction int action);
 
-    void setCustomLabelText(@NonNull CharSequence text);
+    void setCustomLabelText(@Nullable CharSequence text);
 
     void setCustomLabelTextRes(@StringRes int textRes);
+
+    void setBottomLabelText(@Nullable CharSequence text);
+
+    void setBottomLabelTextRes(@StringRes int textRes);
 
     void setRetryText(@Nullable CharSequence text);
 

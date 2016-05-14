@@ -20,6 +20,7 @@
         <attr name="evp_customLabelText" format="string" />
         <attr name="evp_retryText" format="string" />
         <attr name="evp_submitText" format="string" />
+        <attr name="evp_bottomText" format="string" />
 
         <attr name="evp_restartDrawable" format="reference" />
         <attr name="evp_playDrawable" format="reference" />

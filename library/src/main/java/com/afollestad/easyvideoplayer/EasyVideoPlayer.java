@@ -95,6 +95,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private ImageButton mBtnPlayPause;
     private TextView mBtnSubmit;
     private TextView mLabelCustom;
+    private TextView mLabelBottom;
 
     private MediaPlayer mPlayer;
     private boolean mSurfaceAvailable;
@@ -118,6 +119,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private Drawable mPlayDrawable;
     private Drawable mPauseDrawable;
     private CharSequence mCustomLabelText;
+    private CharSequence mBottomLabelText;
     private boolean mHideControlsOnPlay = true;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
@@ -168,6 +170,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 mCustomLabelText = a.getText(R.styleable.EasyVideoPlayer_evp_customLabelText);
                 mRetryText = a.getText(R.styleable.EasyVideoPlayer_evp_retryText);
                 mSubmitText = a.getText(R.styleable.EasyVideoPlayer_evp_submitText);
+                mBottomLabelText = a.getText(R.styleable.EasyVideoPlayer_evp_bottomText);
 
                 mRestartDrawable = a.getDrawable(R.styleable.EasyVideoPlayer_evp_restartDrawable);
                 mPlayDrawable = a.getDrawable(R.styleable.EasyVideoPlayer_evp_playDrawable);
@@ -237,7 +240,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     }
 
     @Override
-    public void setCustomLabelText(@NonNull CharSequence text) {
+    public void setCustomLabelText(@Nullable CharSequence text) {
         mCustomLabelText = text;
         mLabelCustom.setText(text);
         setRightAction(RIGHT_ACTION_CUSTOM_LABEL);
@@ -246,6 +249,20 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     @Override
     public void setCustomLabelTextRes(@StringRes int textRes) {
         setCustomLabelText(getResources().getText(textRes));
+    }
+
+    @Override
+    public void setBottomLabelText(@Nullable CharSequence text) {
+        mBottomLabelText = text;
+        mLabelBottom.setText(text);
+        if (text == null || text.toString().trim().length() == 0)
+            mLabelBottom.setVisibility(View.GONE);
+        else mLabelBottom.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void setBottomLabelTextRes(@StringRes int textRes) {
+        setBottomLabelText(getResources().getText(textRes));
     }
 
     @Override
@@ -737,6 +754,9 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mLabelCustom = (TextView) mControlsFrame.findViewById(R.id.labelCustom);
         mLabelCustom.setText(mCustomLabelText);
 
+        mLabelBottom = (TextView) mControlsFrame.findViewById(R.id.labelBottom);
+        setBottomLabelText(mBottomLabelText);
+
         setControlsEnabled(false);
         invalidateActions();
         prepare();
@@ -874,7 +894,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     private void invalidateThemeColors() {
         final int labelColor = Util.isColorDark(mThemeColor) ? Color.WHITE : Color.BLACK;
-        mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.9f));
+        mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.85f));
         mLabelDuration.setTextColor(labelColor);
         mLabelPosition.setTextColor(labelColor);
     }

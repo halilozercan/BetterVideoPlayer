@@ -63,6 +63,7 @@
         android:layout_below="@+id/position"
         android:background="?selectableItemBackground"
         android:clickable="true"
+        android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:minHeight="@dimen/evp_button_size"
         android:paddingLeft="@dimen/evp_content_inset"
@@ -70,7 +71,7 @@
         android:text="@string/evp_retry"
         android:textColor="#fff"
         android:textSize="@dimen/evp_text_size_medium"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription,UnusedAttribute" />
 
     <ImageButton
         android:id="@+id/btnPlayPause"
@@ -83,6 +84,18 @@
         tools:ignore="ContentDescription" />
 
     <TextView
+        android:id="@+id/labelBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnPlayPause"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="sans-serif"
+        android:textColor="#fff"
+        android:textSize="@dimen/evp_text_size_small"
+        tools:ignore="UnusedAttribute"
+        tools:text="-09:12" />
+
+    <TextView
         android:id="@+id/btnSubmit"
         style="?borderlessButtonStyle"
         android:layout_width="wrap_content"
@@ -91,6 +104,7 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/position"
         android:background="?selectableItemBackground"
+        android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:minHeight="@dimen/evp_button_size"
         android:paddingLeft="@dimen/evp_content_inset"
@@ -98,7 +112,7 @@
         android:text="@string/evp_submit"
         android:textColor="#fff"
         android:textSize="@dimen/evp_text_size_medium"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription,UnusedAttribute" />
 
     <TextView
         android:id="@+id/labelCustom"
