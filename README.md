@@ -3,7 +3,7 @@
 Easy Video Player is a simple but powerful view that you can plugin to your apps to quickly get
 video playback working.
 
-<img src="https://raw.githubusercontent.com/afollestad/easy-video-player/master/art/showcase.png" width="400px" />
+<img src="https://raw.githubusercontent.com/afollestad/easy-video-player/master/art/showcase1.png" width="400px" />
 
 ##### Features
 
