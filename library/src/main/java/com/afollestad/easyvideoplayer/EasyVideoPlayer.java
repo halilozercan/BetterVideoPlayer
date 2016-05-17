@@ -540,21 +540,6 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             mHandler = null;
         }
 
-        if (mTextureView != null) {
-            try {
-                mTextureView.getSurfaceTexture().release();
-            } catch (Throwable ignored) {
-            }
-        }
-
-        if (mSurface != null) {
-            try {
-                mSurface.release();
-            } catch (Throwable ignored) {
-            }
-            mSurface = null;
-        }
-
         LOG("Released player and Handler");
     }
 

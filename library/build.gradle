@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.afollestad'
     PUBLISH_ARTIFACT_ID = 'easyvideoplayer'
-    PUBLISH_VERSION = '0.2.5'
+    PUBLISH_VERSION = '0.2.6'
 }
 
 android {
@@ -13,8 +13,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 8
-        versionName "0.2.5"
+        versionCode 9
+        versionName "${PUBLISH_VERSION}"
     }
     buildTypes {
         release {
