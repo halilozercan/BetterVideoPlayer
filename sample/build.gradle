@@ -1,15 +1,22 @@
 apply plugin: 'com.android.application'
 
+ext {
+    PUBLISH_VERSION = '0.2.7'
+    TARGET_SDK = 24
+    BUILD_TOOLS = "24.0.0"
+    GOOGLE_LIBS = "24.0.0"
+}
+
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion TARGET_SDK
+    buildToolsVersion BUILD_TOOLS
 
     defaultConfig {
         applicationId "com.afollestad.easyvideoplayersample"
         minSdkVersion 14
-        targetSdkVersion 23
-        versionCode 9
-        versionName "0.2.6"
+        targetSdkVersion TARGET_SDK
+        versionCode 10
+        versionName PUBLISH_VERSION
     }
     buildTypes {
         release {
@@ -22,6 +29,6 @@ android {
 dependencies {
     compile project(':library')
 
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.afollestad.material-dialogs:core:0.8.5.9'
+    compile "com.android.support:appcompat-v7:$GOOGLE_LIBS"
+    compile 'com.afollestad.material-dialogs:core:0.8.6.0'
 }
