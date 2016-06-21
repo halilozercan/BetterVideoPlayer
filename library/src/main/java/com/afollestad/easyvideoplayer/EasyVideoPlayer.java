@@ -692,7 +692,6 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         final FrameLayout.LayoutParams textureLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
         mTextureView = new TextureView(getContext());
-        mTextureView.setBackgroundColor(Color.BLACK);
         addView(mTextureView, textureLp);
         mTextureView.setSurfaceTextureListener(this);
 

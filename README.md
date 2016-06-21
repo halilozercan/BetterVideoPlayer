@@ -32,7 +32,7 @@ Add this in your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile 'com.afollestad:easyvideoplayer:0.2.7'
+    compile 'com.afollestad:easyvideoplayer:0.2.8'
 }
 ```
 
