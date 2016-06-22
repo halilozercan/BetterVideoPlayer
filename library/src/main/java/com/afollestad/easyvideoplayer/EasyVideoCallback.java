@@ -7,6 +7,10 @@ import android.net.Uri;
  */
 public interface EasyVideoCallback {
 
+    void onStarted(EasyVideoPlayer player);
+
+    void onPaused(EasyVideoPlayer player);
+
     void onPreparing(EasyVideoPlayer player);
 
     void onPrepared(EasyVideoPlayer player);
