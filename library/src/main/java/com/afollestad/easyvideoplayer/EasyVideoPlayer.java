@@ -126,6 +126,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private int mInitialPosition = -1;
     private boolean mControlsDisabled;
     private int mThemeColor = 0;
+    private boolean mAutoFullscreen = true;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -421,8 +422,10 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         if (mControlsDisabled) return;
         if (isControlsShown()) {
             hideControls();
+            setFullscreen(true);
         } else {
             showControls();
+            setFullscreen(false);
         }
     }
 
@@ -543,6 +546,11 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         }
 
         LOG("Released player and Handler");
+    }
+
+    @Override
+    public void setAutoFullscreen(boolean autoFullscreen) {
+        this.mAutoFullscreen = autoFullscreen;
     }
 
     // Surface listeners
@@ -772,10 +780,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         if (view.getId() == R.id.btnPlayPause) {
             if (mPlayer.isPlaying()) {
                 pause();
+                setFullscreen(false);
             } else {
                 if (mHideControlsOnPlay && !mControlsDisabled)
                     hideControls();
                 start();
+                setFullscreen(true);
             }
         } else if (view.getId() == R.id.btnRestart) {
             seekTo(0);
@@ -902,5 +912,30 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.85f));
         mLabelDuration.setTextColor(labelColor);
         mLabelPosition.setTextColor(labelColor);
+    }
+
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    private int fullscreenFlags() {
+        int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        }
+
+        return flags;
+    }
+
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    private void setFullscreen(boolean fullscreen) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            if (mAutoFullscreen) {
+                setSystemUiVisibility(fullscreen ? fullscreenFlags() : View.SYSTEM_UI_FLAG_VISIBLE);
+                setOnSystemUiVisibilityChangeListener(fullScreenListener);
+            }
+        }
     }
 }
