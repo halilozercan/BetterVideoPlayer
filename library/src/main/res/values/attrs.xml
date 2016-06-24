@@ -33,6 +33,8 @@
 
         <attr name="evp_themeColor" format="color" />
 
+        <attr name="evp_autoFullscreen" format="boolean" />
+
     </declare-styleable>
 
 </resources>

@@ -2,6 +2,7 @@ package com.afollestad.easyvideoplayer;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.CheckResult;
 import android.support.annotation.ColorInt;
@@ -126,7 +128,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     private int mInitialPosition = -1;
     private boolean mControlsDisabled;
     private int mThemeColor = 0;
-    private boolean mAutoFullscreen = true;
+    private boolean mAutoFullscreen = false;
 
     // Runnable used to run code on an interval to update counters and seeker
     private final Runnable mUpdateCounters = new Runnable() {
@@ -184,6 +186,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
                 mThemeColor = a.getColor(R.styleable.EasyVideoPlayer_evp_themeColor,
                         Util.resolveColor(context, R.attr.colorPrimary));
+
+                mAutoFullscreen = a.getBoolean(R.styleable.EasyVideoPlayer_evp_autoFullscreen, false);
             } finally {
                 a.recycle();
             }
@@ -194,6 +198,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             mAutoPlay = false;
             mControlsDisabled = false;
             mThemeColor = Util.resolveColor(context, R.attr.colorPrimary);
+            mAutoFullscreen = false;
         }
 
         if (mRetryText == null)
@@ -386,7 +391,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void showControls() {
-        if (mControlsDisabled || isControlsShown() || mSeeker == null) return;
+        if (mControlsDisabled || isControlsShown() || mSeeker == null)
+            return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -396,7 +402,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void hideControls() {
-        if (mControlsDisabled || !isControlsShown() || mSeeker == null) return;
+        if (mControlsDisabled || !isControlsShown() || mSeeker == null)
+            return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(1f);
         mControlsFrame.setVisibility(View.VISIBLE);
@@ -419,7 +426,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
 
     @Override
     public void toggleControls() {
-        if (mControlsDisabled) return;
+        if (mControlsDisabled)
+            return;
         if (isControlsShown()) {
             hideControls();
             setFullscreen(true);

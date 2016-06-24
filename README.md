@@ -32,7 +32,7 @@ Add this in your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile 'com.afollestad:easyvideoplayer:0.2.8'
+    compile 'com.afollestad:easyvideoplayer:0.2.9'
 }
 ```
 
@@ -155,6 +155,16 @@ public class MyPlayerActivity extends AppCompatActivity implements EasyVideoCall
     @Override
     public void onSubmit(EasyVideoPlayer player, Uri source) {
         // TODO handle if used
+    }
+
+    @Override
+    public void onStarted(EasyVideoPlayer player) {
+        // TODO handle if needed
+    }
+
+    @Override
+    public void onPaused(EasyVideoPlayer player) {
+        // TODO handle if needed
     }
 }
 ```
@@ -283,6 +293,9 @@ player.setThemeColorRes(int);
 
 // Sets the left and right volume levels. The player must be prepared first.
 player.setVolume(float, float);
+
+// Sets whether or not the player will toggle fullscreen for its Activity when tapped.
+player.setAutoFullscreen(false);
 ```
 
 ---
@@ -309,5 +322,6 @@ The programmatic configuration options shown above can also be configured direct
     app:evp_rightAction="none"
     app:evp_source="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
     app:evp_submitText="@string/evp_submit"
-    app:evp_themeColor="@color/color_primary" />
+    app:evp_themeColor="@color/color_primary"
+    app:evp_autoFullscreen="false" />
 ```

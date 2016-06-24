@@ -32,6 +32,14 @@ public class MainActivity extends AppCompatActivity implements EasyVideoCallback
     }
 
     @Override
+    public void onStarted(EasyVideoPlayer player) {
+    }
+
+    @Override
+    public void onPaused(EasyVideoPlayer player) {
+    }
+
+    @Override
     public void onPreparing(EasyVideoPlayer player) {
         Log.d("EVP-Sample", "onPreparing()");
     }
