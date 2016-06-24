@@ -103,4 +103,6 @@ interface IUserMethods {
     void reset();
 
     void release();
+
+    void setAutoFullscreen(boolean autoFullScreen);
 }
