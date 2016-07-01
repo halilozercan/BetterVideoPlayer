@@ -841,9 +841,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     // Utilities
 
     private static void LOG(String message, Object... args) {
-        if (args != null)
-            message = String.format(message, args);
-        Log.d("EasyVideoPlayer", message);
+        try {
+            if (args != null)
+                message = String.format(message, args);
+            Log.d("EasyVideoPlayer", message);
+        } catch (MissingFormatArgumentException ignored) {
+        }
     }
 
     private void invalidateActions() {
