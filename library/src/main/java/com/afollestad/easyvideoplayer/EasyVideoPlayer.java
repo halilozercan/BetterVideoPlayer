@@ -360,7 +360,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             if (mCallback != null)
                 mCallback.onPreparing(this);
             mPlayer.setSurface(mSurface);
-            if (mSource.getScheme().equals("http") || mSource.getScheme().equals("https")) {
+            if (mSource.getScheme() != null &&
+                    (mSource.getScheme().equals("http") || mSource.getScheme().equals("https"))) {
                 LOG("Loading web URI: " + mSource.toString());
                 mPlayer.setDataSource(mSource.toString());
             } else {
@@ -849,9 +850,12 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     // Utilities
 
     private static void LOG(String message, Object... args) {
-        if (args != null)
-            message = String.format(message, args);
-        Log.d("EasyVideoPlayer", message);
+        try {
+            if (args != null)
+                message = String.format(message, args);
+            Log.d("EasyVideoPlayer", message);
+        } catch (MissingFormatArgumentException ignored) {
+        }
     }
 
     private void invalidateActions() {
