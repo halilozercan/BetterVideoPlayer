@@ -42,7 +42,6 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.MissingFormatArgumentException;
 
 /**
  * @author Aidan Follestad (afollestad)
@@ -855,7 +854,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             if (args != null)
                 message = String.format(message, args);
             Log.d("EasyVideoPlayer", message);
-        } catch (MissingFormatArgumentException ignored) {
+        } catch (Exception ignored) {
         }
     }
 
