@@ -42,6 +42,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.MissingFormatArgumentException;
 
 /**
  * @author Aidan Follestad (afollestad)
