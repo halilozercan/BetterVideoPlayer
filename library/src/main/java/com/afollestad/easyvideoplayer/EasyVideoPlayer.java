@@ -25,6 +25,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -394,11 +395,19 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public void showControls() {
         if (mControlsDisabled || isControlsShown() || mSeeker == null)
             return;
+
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
-        mControlsFrame.animate().alpha(1f).setListener(null)
-                .setInterpolator(new DecelerateInterpolator()).start();
+        mControlsFrame.animate().alpha(1f)
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (mAutoFullscreen)
+                            setFullscreen(false);
+                    }
+                }).start();
     }
 
     @Override
@@ -413,8 +422,10 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
+                        setFullscreen(true);
+
                         if (mControlsFrame != null)
-                            mControlsFrame.setVisibility(View.GONE);
+                            mControlsFrame.setVisibility(View.INVISIBLE);
                     }
                 }).start();
     }
@@ -431,10 +442,8 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
             return;
         if (isControlsShown()) {
             hideControls();
-            setFullscreen(true);
         } else {
             showControls();
-            setFullscreen(false);
         }
     }
 
@@ -789,12 +798,10 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         if (view.getId() == R.id.btnPlayPause) {
             if (mPlayer.isPlaying()) {
                 pause();
-                setFullscreen(false);
             } else {
                 if (mHideControlsOnPlay && !mControlsDisabled)
                     hideControls();
                 start();
-                setFullscreen(true);
             }
         } else if (view.getId() == R.id.btnRestart) {
             seekTo(0);
@@ -927,25 +934,25 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    private int fullscreenFlags() {
-        int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        }
-
-        return flags;
-    }
-
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private void setFullscreen(boolean fullscreen) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (mAutoFullscreen) {
-                setSystemUiVisibility(fullscreen ? fullscreenFlags() : View.SYSTEM_UI_FLAG_VISIBLE);
+                int flags = !fullscreen ? 0 : View.SYSTEM_UI_FLAG_LOW_PROFILE;
+
+                ViewCompat.setFitsSystemWindows(mControlsFrame, !fullscreen);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+                    if (fullscreen) {
+                        flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_IMMERSIVE;
+                    }
+                }
+
+                mClickFrame.setSystemUiVisibility(flags);
             }
         }
     }
