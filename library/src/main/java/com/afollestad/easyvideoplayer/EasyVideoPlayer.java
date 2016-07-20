@@ -498,7 +498,7 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
     public void start() {
         if (mPlayer == null) return;
         mPlayer.start();
-        mCallback.onStarted(this);
+        if (mCallback != null) mCallback.onStarted(this);
         if (mHandler == null) mHandler = new Handler();
         mHandler.post(mUpdateCounters);
         mBtnPlayPause.setImageDrawable(mPauseDrawable);
