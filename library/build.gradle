@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.afollestad'
     PUBLISH_ARTIFACT_ID = 'easyvideoplayer'
-    PUBLISH_VERSION = '0.2.10'
+    PUBLISH_VERSION = '0.2.11'
     TARGET_SDK = 24
     BUILD_TOOLS = "24.0.0"
     GOOGLE_LIBS = "24.2.0"
@@ -16,7 +16,7 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK
-        versionCode 11
+        versionCode 12
         versionName PUBLISH_VERSION
     }
     buildTypes {
@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    compile 'me.zhanghai.android.materialprogressbar:library:1.1.6'
+    compile 'me.zhanghai.android.materialprogressbar:library:1.1.7'
     compile "com.android.support:appcompat-v7:$GOOGLE_LIBS"
 }
 

@@ -69,6 +69,7 @@
         android:paddingLeft="@dimen/evp_content_inset"
         android:paddingRight="@dimen/evp_content_inset"
         android:text="@string/evp_retry"
+        android:textAllCaps="false"
         android:textColor="#fff"
         android:textSize="@dimen/evp_text_size_medium"
         tools:ignore="ContentDescription,UnusedAttribute" />
@@ -110,6 +111,7 @@
         android:paddingLeft="@dimen/evp_content_inset"
         android:paddingRight="@dimen/evp_content_inset"
         android:text="@string/evp_submit"
+        android:textAllCaps="false"
         android:textColor="#fff"
         android:textSize="@dimen/evp_text_size_medium"
         tools:ignore="ContentDescription,UnusedAttribute" />
