@@ -4,9 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
@@ -25,6 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -926,11 +929,39 @@ public class EasyVideoPlayer extends FrameLayout implements IUserMethods, Textur
         else throw new RuntimeException(e);
     }
 
+    private static void setTint(@NonNull SeekBar seekBar, @ColorInt int color) {
+        ColorStateList s1 = ColorStateList.valueOf(color);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            seekBar.setThumbTintList(s1);
+            seekBar.setProgressTintList(s1);
+        } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
+            Drawable progressDrawable = DrawableCompat.wrap(seekBar.getProgressDrawable());
+            seekBar.setProgressDrawable(progressDrawable);
+            DrawableCompat.setTintList(progressDrawable, s1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                Drawable thumbDrawable = DrawableCompat.wrap(seekBar.getThumb());
+                DrawableCompat.setTintList(thumbDrawable, s1);
+                seekBar.setThumb(thumbDrawable);
+            }
+        } else {
+            PorterDuff.Mode mode = PorterDuff.Mode.SRC_IN;
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
+                mode = PorterDuff.Mode.MULTIPLY;
+            }
+            if (seekBar.getIndeterminateDrawable() != null)
+                seekBar.getIndeterminateDrawable().setColorFilter(color, mode);
+            if (seekBar.getProgressDrawable() != null)
+                seekBar.getProgressDrawable().setColorFilter(color, mode);
+        }
+    }
+
     private void invalidateThemeColors() {
         final int labelColor = Util.isColorDark(mThemeColor) ? Color.WHITE : Color.BLACK;
         mControlsFrame.setBackgroundColor(Util.adjustAlpha(mThemeColor, 0.85f));
         mLabelDuration.setTextColor(labelColor);
         mLabelPosition.setTextColor(labelColor);
+        setTint(mSeeker, labelColor);
+
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
