@@ -5,7 +5,7 @@ ext {
     PUBLISH_ARTIFACT_ID = 'easyvideoplayer'
     PUBLISH_VERSION = '0.2.12'
     TARGET_SDK = 24
-    BUILD_TOOLS = "24.0.0"
+    BUILD_TOOLS = "24.0.1"
     GOOGLE_LIBS = "24.2.0"
 }
 
