@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 ext {
-    PUBLISH_GROUP_ID = 'com.afollestad'
-    PUBLISH_ARTIFACT_ID = 'easyvideoplayer'
-    PUBLISH_VERSION = '0.2.12'
+    PUBLISH_GROUP_ID = 'com.halilibo'
+    PUBLISH_ARTIFACT_ID = 'bettervideoplayer'
+    PUBLISH_VERSION = '0.0.1'
     TARGET_SDK = 24
-    BUILD_TOOLS = "24.0.1"
-    GOOGLE_LIBS = "24.2.0"
+    BUILD_TOOLS = "24.0.0"
+    GOOGLE_LIBS = "24.2.1"
 }
 
 android {
@@ -14,9 +14,9 @@ android {
     buildToolsVersion BUILD_TOOLS
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion TARGET_SDK
-        versionCode 13
+        versionCode 11
         versionName PUBLISH_VERSION
     }
     buildTypes {
@@ -28,8 +28,10 @@ android {
 }
 
 dependencies {
-    compile 'me.zhanghai.android.materialprogressbar:library:1.1.7'
+    compile 'me.zhanghai.android.materialprogressbar:library:1.1.6'
     compile "com.android.support:appcompat-v7:$GOOGLE_LIBS"
+    compile 'org.adw.library:discrete-seekbar:1.0.1'
+    compile 'com.devbrackets.android:exomedia:3.0.1'
+    compile 'com.android.support:support-compat:24.2.1'
+    compile 'com.android.support:design:24.2.1'
 }
-
-apply from: 'https://raw.githubusercontent.com/afollestad/aidanfollestad.com/master/android-lib-release.gradle'
