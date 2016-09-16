@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.support.annotation.DimenRes;
+import android.support.annotation.Dimension;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.text.Html;
@@ -23,9 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * Created by MHDante on 2015-07-26.
- */
 public class SubtitleView extends TextView implements Runnable{
     private static final String TAG = "SubtitleView";
     private static final boolean DEBUG = false;
@@ -77,7 +76,6 @@ public class SubtitleView extends TextView implements Runnable{
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         postDelayed(this, 300);
-        this.setTextColor(Color.WHITE);
         this.setShadowLayer(6,6,6, Color.BLACK);
     }
 
@@ -98,8 +96,10 @@ public class SubtitleView extends TextView implements Runnable{
 
     public void setSubSource(@Nullable Uri path, SubtitleMime mime){
         this.mimeType = mime;
+        if(path == null){
+            track = new TreeMap<>();
+        }
         try {
-            assert path != null;
             URL url = new URL(path.toString());
             getSubtitleFile(url);
         } catch (MalformedURLException e) {
@@ -117,7 +117,7 @@ public class SubtitleView extends TextView implements Runnable{
             return parseSrt(in);
         }
         else if(mime == SubtitleMime.WEBVTT){
-            //return parseVtt(in);
+            return parseVtt(in);
         }
 
         return parseSrt(in);
@@ -148,6 +148,38 @@ public class SubtitleView extends TextView implements Runnable{
         long minutes = Long.parseLong(in.split(":")[1].trim());
         long seconds = Long.parseLong(in.split(":")[2].split(",")[0].trim());
         long millies = Long.parseLong(in.split(":")[2].split(",")[1].trim());
+
+        return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
+
+    }
+
+    public static TreeMap<Long, Line> parseVtt(InputStream is) throws IOException {
+        LineNumberReader r = new LineNumberReader(new InputStreamReader(is, "UTF-8"));
+        TreeMap<Long, Line> track = new TreeMap<>();
+        r.readLine(); // Read first WEBVTT FILE cue
+        r.readLine(); // Empty line after cue
+        while ((r.readLine()) != null) /*Read cue number*/{
+            String timeString = r.readLine();
+            String lineString = "";
+            String s;
+            while (!((s = r.readLine()) == null || s.trim().equals(""))) {
+                lineString += s + "\n";
+            }
+            // Remove unnecessary \n at the end of the string
+            lineString = lineString.substring(0, lineString.length()-1);
+
+            long startTime = parseVtt(timeString.split("-->")[0]);
+            long endTime = parseVtt(timeString.split("-->")[1]);
+            track.put(startTime, new Line(startTime, endTime, lineString));
+        }
+        return track;
+    }
+
+    private static long parseVtt(String in) {
+        long hours = Long.parseLong(in.split(":")[0].trim());
+        long minutes = Long.parseLong(in.split(":")[1].trim());
+        long seconds = Long.parseLong(in.split(":")[2].split(".")[0].trim());
+        long millies = Long.parseLong(in.split(":")[2].split(".")[1].trim());
 
         return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
 

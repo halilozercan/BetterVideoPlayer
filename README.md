@@ -1,4 +1,6 @@
-## Easy Video Player
+## Better Video Player
+
+## Fix README after fork
 
 Easy Video Player is a simple but powerful view that you can plugin to your apps to quickly get
 video playback working.

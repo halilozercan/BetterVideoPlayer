@@ -15,8 +15,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.CheckResult;
-import android.support.annotation.ColorInt;
-import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
@@ -28,6 +26,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -41,6 +40,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.halilibo.bettervideoplayer.subtitle.SubtitleView;
+import com.halilibo.bettervideoplayer.utility.EmptyCallback;
+import com.halilibo.bettervideoplayer.utility.Util;
 
 import java.io.IOException;
 
@@ -55,7 +56,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnErrorListener,
         View.OnClickListener, SeekBar.OnSeekBarChangeListener{
 
-    private View mSubtitlesFrame;
     private MaterialProgressBar mProgressBar;
     private TextView mPositionTextView;
     private LayoutParams mControlsLp;
@@ -69,6 +69,8 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private int mMenuId;
     private Toolbar.OnMenuItemClickListener menuItemClickListener;
     private String mTitle;
+    private int mSubViewTextSize;
+    private int mSubViewTextColor;
 
     public BetterVideoPlayer(Context context) {
         super(context);
@@ -85,40 +87,42 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         init(context, attrs);
     }
 
-    private TextureView mTextureView;
-    private Surface mSurface;
-
     private View mControlsFrame;
     private View mProgressFrame;
     private View mClickFrame;
     private View mTextureFrame;
+    private View mSubtitlesFrame;
     private View mTopBarFrame;
+
+    private MediaPlayer mPlayer;
+    private TextureView mTextureView;
+    private Surface mSurface;
 
     private SeekBar mSeeker;
     private TextView mLabelPosition;
     private TextView mLabelDuration;
     private ImageButton mBtnPlayPause;
 
-    private MediaPlayer mPlayer;
     private boolean mSurfaceAvailable;
     private boolean mIsPrepared;
     private boolean mWasPlaying;
     private int mInitialTextureWidth;
     private int mInitialTextureHeight;
-
     private Handler mHandler;
 
     private Uri mSource;
+
     private BetterVideoCallback mCallback;
     private BetterVideoProgressCallback mProgressCallback;
-    private CharSequence mSubmitText;
+
     private Drawable mPlayDrawable;
     private Drawable mPauseDrawable;
+    private Drawable mRestartDrawable;
+
     private boolean mHideControlsOnPlay = false;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
     private boolean mControlsDisabled;
-    private int mThemeColor = 0;
 
     OnSwipeTouchListener clickFrameSwipeListener = new OnSwipeTouchListener(){
 
@@ -129,15 +133,24 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         public void onMove(Direction dir, float diff) {
             Log.d("ClickFrame", dir + " " + diff);
             if(dir == Direction.LEFT || dir == Direction.RIGHT) {
-                diffTime = (float) mPlayer.getDuration() * diff / ((float) mInitialTextureWidth * 10);
+                if(mPlayer.getDuration() <= 60){
+                    diffTime = (float) mPlayer.getDuration() * diff / ((float) mInitialTextureWidth);
+                    LOG("Difftime is %f and duration %d, physical diff %f", diffTime, mPlayer.getDuration(), diff);
+                }
+                else{
+                    diffTime = (float) 60000 * diff / ((float) mInitialTextureWidth);
+                }
                 if (dir == Direction.LEFT) {
                     diffTime = -diffTime;
                 }
                 finalTime = mPlayer.getCurrentPosition() + diffTime;
-                if (finalTime < 0)
+                if (finalTime < 0) {
                     finalTime = 0;
-                else if (finalTime > mPlayer.getDuration())
+                }
+                else if (finalTime > mPlayer.getDuration()) {
                     finalTime = mPlayer.getDuration();
+                }
+                diffTime = finalTime - mPlayer.getCurrentPosition();
 
                 String progressText =
                         Util.getDurationString((long) finalTime, false) +
@@ -170,11 +183,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
         @Override
         public void onClick() {
-            Log.d("ClickFrame", "Clicked");
-            //toggleControls();
-            if(mCallback!=null){
-                mCallback.onClicked(BetterVideoPlayer.this);
-            }
             toggleControls();
         }
 
@@ -245,90 +253,47 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
                 mPlayDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_playDrawable);
                 mPauseDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_pauseDrawable);
+                mRestartDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_restartDrawable);
 
                 mHideControlsOnPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_hideControlsOnPlay, false);
                 mAutoPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_autoPlay, false);
+                mLoop = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_loop, false);
                 mControlsDisabled = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_disableControls, false);
-
-                mThemeColor = a.getColor(R.styleable.BetterVideoPlayer_bvp_themeColor,
-                        Util.resolveColor(context, R.attr.colorPrimary));
+                mSubViewTextSize = a.getDimensionPixelSize(R.styleable.BetterVideoPlayer_bvp_subtitleSize,
+                        getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
+                mSubViewTextColor = a.getColor(R.styleable.BetterVideoPlayer_bvp_subtitleColor,
+                        getResources().getColor(R.color.bvp_subtitle_color));
+                LOG("SubtitleColor %d", mSubViewTextColor);
 
                 mMenuId = a.getResourceId(R.styleable.BetterVideoPlayer_bvp_menu, R.menu.base);
 
-            } finally {
+            }
+            catch (Exception e){
+                LOG("Exception " + e.getMessage());
+                e.printStackTrace();
+            }
+            finally {
                 a.recycle();
             }
         } else {
             mHideControlsOnPlay = false;
             mAutoPlay = false;
+            mLoop = false;
             mControlsDisabled = false;
-            mThemeColor = Util.resolveColor(context, R.attr.colorPrimary);
             mMenuId = R.menu.base;
+            mSubViewTextSize = getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size);
+            mSubViewTextColor = getResources().getColor(R.color.bvp_subtitle_color);
         }
 
         if (mPlayDrawable == null)
             mPlayDrawable = ContextCompat.getDrawable(context, R.drawable.bvp_action_play);
         if (mPauseDrawable == null)
             mPauseDrawable = ContextCompat.getDrawable(context, R.drawable.bvp_action_pause);
+        if (mRestartDrawable == null)
+            mRestartDrawable = ContextCompat.getDrawable(context, R.drawable.bvp_action_restart);
 
         // Have a default callback. setCallback will change this
-        mCallback = new BetterVideoCallback() {
-            @Override
-            public void onStarted(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onPaused(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onPreparing(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onPrepared(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onBuffering(int percent) {
-
-            }
-
-            @Override
-            public void onError(BetterVideoPlayer player, Exception e) {
-
-            }
-
-            @Override
-            public void onCompletion(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onLeftButton(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onRightButton(BetterVideoPlayer player) {
-
-            }
-
-            @Override
-            public void onSeekbarPositionChanged(ProgressAction action, int progress, boolean byUser) {
-
-            }
-
-            @Override
-            public void onClicked(BetterVideoPlayer player) {
-
-            }
-        };
-
+        mCallback = new EmptyCallback();
     }
 
     @Override
@@ -412,6 +377,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         if (!mSurfaceAvailable || mSource == null || mPlayer == null || mIsPrepared)
             return;
         try {
+            hideControls();
             mCallback.onPreparing(this);
             mPlayer.setSurface(mSurface);
             if (mSource.getScheme().equals("http") || mSource.getScheme().equals("https")) {
@@ -623,18 +589,18 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     }
 
     @Override
-    public void setSubtitle(Uri source) {
-        mSubView.setSubSource(source, SubtitleView.SubtitleMime.SUBRIP);
+    public void setSubtitle(Uri source, SubtitleView.SubtitleMime subMime) {
+        mSubView.setSubSource(source, subMime);
     }
 
     @Override
-    public void setSubtitle(@RawRes int resId) {
-        mSubView.setSubSource(resId, SubtitleView.SubtitleMime.SUBRIP);
+    public void setSubtitle(@RawRes int resId, SubtitleView.SubtitleMime subMime) {
+        mSubView.setSubSource(resId, subMime);
     }
 
     @Override
     public void removeSubtitle(){
-        setSubtitle(null);
+        setSubtitle(null, null);
     }
 
     // Surface listeners
@@ -678,6 +644,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     public void onPrepared(MediaPlayer mediaPlayer) {
         LOG("onPrepared()");
         mProgressBar.setVisibility(View.INVISIBLE);
+        showControls();
         mIsPrepared = true;
         if (mCallback != null)
             mCallback.onPrepared(this);
@@ -717,7 +684,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         LOG("onCompletion()");
-        mBtnPlayPause.setImageDrawable(mPlayDrawable);
+        mBtnPlayPause.setImageDrawable(mRestartDrawable);
         if (mHandler != null)
             mHandler.removeCallbacks(mUpdateCounters);
         mSeeker.setProgress(mSeeker.getMax());
@@ -849,6 +816,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mSubView = (SubtitleView) mSubtitlesFrame.findViewById(R.id.subs_box);
         mSubView.setPlayer(mPlayer);
 
+        mSubView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mSubViewTextSize);
+        mSubView.setTextColor(mSubViewTextColor);
+
         addView(mSubtitlesFrame, mSubtitlesLp);
 
         // Retrieve controls
@@ -866,7 +836,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mBtnPlayPause.setImageDrawable(mPlayDrawable);
 
         setControlsEnabled(false);
-        invalidateActions();
         prepare();
     }
 
@@ -898,9 +867,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             seekTo(i);
             mPositionTextView.setText(Util.getDurationString(i, false));
         }
-        if(mCallback != null){
-            mCallback.onSeekbarPositionChanged(ProgressAction.Change, i, b);
-        }
     }
 
     @Override
@@ -908,18 +874,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mWasPlaying = isPlaying();
         if (mWasPlaying) mPlayer.pause(); // keeps the time updater running, unlike pause()
         mPositionTextView.setVisibility(VISIBLE);
-
-        if(mCallback != null){
-            mCallback.onSeekbarPositionChanged(ProgressAction.Start, 0, false);
-        }
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         if (mWasPlaying) mPlayer.start();
-        if(mCallback != null){
-            mCallback.onSeekbarPositionChanged(ProgressAction.Stop, 0, false);
-        }
         mPositionTextView.setVisibility(GONE);
     }
 
@@ -950,10 +909,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         if (args != null)
             message = String.format(message, args);
         Log.d("BetterVideoPlayer", message);
-    }
-
-    private void invalidateActions() {
-
     }
 
     private void adjustAspectRatio(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {

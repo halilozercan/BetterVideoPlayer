@@ -15,6 +15,8 @@ import android.support.annotation.RawRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.Toolbar;
 
+import com.halilibo.bettervideoplayer.subtitle.SubtitleView;
+
 /**
  * @author Aidan Follestad (halilibo)
  */
@@ -87,9 +89,9 @@ interface IUserMethods {
 
     void release();
 
-    void setSubtitle(Uri source);
+    void setSubtitle(Uri source, SubtitleView.SubtitleMime subMime);
 
-    void setSubtitle(@RawRes int resId);
+    void setSubtitle(@RawRes int resId, SubtitleView.SubtitleMime subMime);
 
     void removeSubtitle();
 

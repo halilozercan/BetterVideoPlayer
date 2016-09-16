@@ -18,12 +18,4 @@ public interface BetterVideoCallback {
     void onError(BetterVideoPlayer player, Exception e);
 
     void onCompletion(BetterVideoPlayer player);
-
-    void onLeftButton(BetterVideoPlayer player);
-
-    void onRightButton(BetterVideoPlayer player);
-
-    void onSeekbarPositionChanged(ProgressAction action, int progress, boolean byUser);
-
-    void onClicked(BetterVideoPlayer player);
 }

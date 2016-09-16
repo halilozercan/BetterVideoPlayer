@@ -14,5 +14,6 @@
 
     <dimen name="bvp_negative_inset_large">-8dp</dimen>
     <dimen name="bvp_negative_inset_small">-2dp</dimen>
+    <dimen name="bvp_subtitle_size">22sp</dimen>
 
 </resources>
