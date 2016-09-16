@@ -25,4 +25,11 @@
         android:text="Background Video"
         android:layout_below="@+id/bvp"/>
 
+    <Button
+        android:id="@+id/fulscreen_activity_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fullscreen Video"
+        android:layout_below="@+id/background_activity_button"/>
+
 </RelativeLayout>

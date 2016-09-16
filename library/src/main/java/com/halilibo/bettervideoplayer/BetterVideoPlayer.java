@@ -92,7 +92,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private View mClickFrame;
     private View mTextureFrame;
     private View mSubtitlesFrame;
-    private View mTopBarFrame;
+    private View mTooolbarFrame;
 
     private MediaPlayer mPlayer;
     private TextureView mTextureView;
@@ -416,10 +416,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mControlsFrame.animate().alpha(1f).setListener(null)
                 .setInterpolator(new DecelerateInterpolator()).start();
 
-        mTopBarFrame.animate().cancel();
-        mTopBarFrame.setAlpha(0f);
-        mTopBarFrame.setVisibility(View.VISIBLE);
-        mTopBarFrame.animate().alpha(1f).setListener(null)
+        mTooolbarFrame.animate().cancel();
+        mTooolbarFrame.setAlpha(0f);
+        mTooolbarFrame.setVisibility(View.VISIBLE);
+        mTooolbarFrame.animate().alpha(1f).setListener(null)
                 .setInterpolator(new DecelerateInterpolator()).start();
     }
 
@@ -440,16 +440,16 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                     }
                 }).start();
 
-        mTopBarFrame.animate().cancel();
-        mTopBarFrame.setAlpha(1f);
-        mTopBarFrame.setVisibility(View.VISIBLE);
-        mTopBarFrame.animate().alpha(0f)
+        mTooolbarFrame.animate().cancel();
+        mTooolbarFrame.setAlpha(1f);
+        mTooolbarFrame.setVisibility(View.VISIBLE);
+        mTooolbarFrame.animate().alpha(0f)
                 .setInterpolator(new DecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        if (mTopBarFrame != null)
-                            mTopBarFrame.setVisibility(View.GONE);
+                        if (mTooolbarFrame != null)
+                            mTooolbarFrame.setVisibility(View.GONE);
                     }
                 }).start();
     }
@@ -484,6 +484,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     public void disableControls() {
         mControlsDisabled = true;
         mControlsFrame.setVisibility(View.GONE);
+        mTooolbarFrame.setVisibility(View.GONE);
         mClickFrame.setOnTouchListener(null);
         mClickFrame.setClickable(false);
     }
@@ -789,22 +790,15 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mControlsLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         addView(mControlsFrame, mControlsLp);
 
-        if (mControlsDisabled) {
-            mClickFrame.setOnTouchListener(null);
-            mControlsFrame.setVisibility(View.GONE);
-        } else {
-            mClickFrame.setOnTouchListener(clickFrameSwipeListener);
-        }
-
         // Add topbar
-        mTopBarFrame = li.inflate(R.layout.bvp_include_topbar, this, false);
-        mToolbar = (Toolbar) mTopBarFrame.findViewById(R.id.toolbar);
+        mTooolbarFrame = li.inflate(R.layout.bvp_include_topbar, this, false);
+        mToolbar = (Toolbar) mTooolbarFrame.findViewById(R.id.toolbar);
         mToolbar.setTitle(mTitle);
         mToolbar.inflateMenu(mMenuId);
         if(menuItemClickListener != null) {
             mToolbar.setOnMenuItemClickListener(menuItemClickListener);
         }
-        addView(mTopBarFrame);
+        addView(mTooolbarFrame);
 
         // Inflate subtitles
         mSubtitlesFrame = li.inflate(R.layout.bvp_include_subtitle, this, false);
@@ -835,6 +829,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mBtnPlayPause.setOnClickListener(this);
         mBtnPlayPause.setImageDrawable(mPlayDrawable);
 
+        if (mControlsDisabled) {
+            disableControls();
+        } else {
+            enableControls(false);
+        }
         setControlsEnabled(false);
         prepare();
     }
@@ -880,6 +879,15 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     public void onStopTrackingTouch(SeekBar seekBar) {
         if (mWasPlaying) mPlayer.start();
         mPositionTextView.setVisibility(GONE);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        LOG("Attached to window");
+        if(mPlayer != null){
+            LOG("mPlayer not null on attach");
+        }
     }
 
     @Override

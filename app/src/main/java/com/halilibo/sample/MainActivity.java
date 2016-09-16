@@ -31,12 +31,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.fulscreen_activity_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, FullscreenActivity.class));
+            }
+        });
+
         bvp = (BetterVideoPlayer) findViewById(R.id.bvp);
 
-        Log.d(TAG, "Created");
 
         if(savedInstanceState == null) {
-            Log.d(TAG, "instance null");
             bvp.setAutoPlay(true);
             bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
             bvp.setSubtitle(R.raw.sub, SubtitleView.SubtitleMime.SUBRIP);
@@ -95,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
     public void onPause(){
         pausedVideo = bvp.isPlaying();
         bvp.pause();
-        Log.d(TAG, "paused");
         super.onPause();
     }
 }
