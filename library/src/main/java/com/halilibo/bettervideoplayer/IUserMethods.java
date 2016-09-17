@@ -3,19 +3,16 @@ package com.halilibo.bettervideoplayer;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.CheckResult;
-import android.support.annotation.ColorInt;
-import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.MenuRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.Toolbar;
 
-import com.halilibo.bettervideoplayer.subtitle.SubtitleView;
+import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 
 /**
  * @author Aidan Follestad (halilibo)
@@ -89,11 +86,11 @@ interface IUserMethods {
 
     void release();
 
-    void setSubtitle(Uri source, SubtitleView.SubtitleMime subMime);
+    void setCaptions(Uri source, CaptionsView.CMime subMime);
 
-    void setSubtitle(@RawRes int resId, SubtitleView.SubtitleMime subMime);
+    void setCaptions(@RawRes int resId, CaptionsView.CMime subMime);
 
-    void removeSubtitle();
+    void removeCaptions();
 
     void setLoop(boolean loop);
 }

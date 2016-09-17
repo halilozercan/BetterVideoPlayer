@@ -20,8 +20,8 @@
 
         <attr name="bvp_autoFullscreen" format="boolean" />
 
-        <attr name="bvp_subtitleSize" format="dimension" />
-        <attr name="bvp_subtitleColor" format="color" />
+        <attr name="bvp_captionSize" format="dimension" />
+        <attr name="bvp_captionColor" format="color" />
 
     </declare-styleable>
 

@@ -39,7 +39,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.halilibo.bettervideoplayer.subtitle.SubtitleView;
+import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 import com.halilibo.bettervideoplayer.utility.EmptyCallback;
 import com.halilibo.bettervideoplayer.utility.Util;
 
@@ -60,7 +60,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private TextView mPositionTextView;
     private LayoutParams mControlsLp;
     private boolean mLoop = false;
-    private SubtitleView mSubView;
+    private CaptionsView mSubView;
 
     private AudioManager am;
     private static final int UPDATE_INTERVAL = 100;
@@ -259,9 +259,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                 mAutoPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_autoPlay, false);
                 mLoop = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_loop, false);
                 mControlsDisabled = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_disableControls, false);
-                mSubViewTextSize = a.getDimensionPixelSize(R.styleable.BetterVideoPlayer_bvp_subtitleSize,
+                mSubViewTextSize = a.getDimensionPixelSize(R.styleable.BetterVideoPlayer_bvp_captionSize,
                         getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
-                mSubViewTextColor = a.getColor(R.styleable.BetterVideoPlayer_bvp_subtitleColor,
+                mSubViewTextColor = a.getColor(R.styleable.BetterVideoPlayer_bvp_captionColor,
                         getResources().getColor(R.color.bvp_subtitle_color));
                 LOG("SubtitleColor %d", mSubViewTextColor);
 
@@ -408,6 +408,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
     @Override
     public void showControls() {
+        mCallback.onToggleControls(this, true);
         if (mControlsDisabled || isControlsShown() || mSeeker == null)
             return;
         mControlsFrame.animate().cancel();
@@ -425,6 +426,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
     @Override
     public void hideControls() {
+        mCallback.onToggleControls(this, false);
         if (mControlsDisabled || !isControlsShown() || mSeeker == null)
             return;
         mControlsFrame.animate().cancel();
@@ -590,18 +592,18 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     }
 
     @Override
-    public void setSubtitle(Uri source, SubtitleView.SubtitleMime subMime) {
-        mSubView.setSubSource(source, subMime);
+    public void setCaptions(Uri source, CaptionsView.CMime cMime) {
+        mSubView.setCaptionsSource(source, cMime);
     }
 
     @Override
-    public void setSubtitle(@RawRes int resId, SubtitleView.SubtitleMime subMime) {
-        mSubView.setSubSource(resId, subMime);
+    public void setCaptions(@RawRes int resId, CaptionsView.CMime cMime) {
+        mSubView.setCaptionsSource(resId, cMime);
     }
 
     @Override
-    public void removeSubtitle(){
-        setSubtitle(null, null);
+    public void removeCaptions(){
+        setCaptions(null, null);
     }
 
     // Surface listeners
@@ -807,7 +809,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mSubtitlesLp.addRule(RelativeLayout.ABOVE, R.id.bvp_include_relativelayout);
         mSubtitlesLp.alignWithParent = true;
 
-        mSubView = (SubtitleView) mSubtitlesFrame.findViewById(R.id.subs_box);
+        mSubView = (CaptionsView) mSubtitlesFrame.findViewById(R.id.subs_box);
         mSubView.setPlayer(mPlayer);
 
         mSubView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mSubViewTextSize);

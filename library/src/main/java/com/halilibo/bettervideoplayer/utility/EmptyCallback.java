@@ -39,4 +39,9 @@ public class EmptyCallback implements BetterVideoCallback {
     public void onCompletion(BetterVideoPlayer player) {
 
     }
+
+    @Override
+    public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
+
+    }
 }

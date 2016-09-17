@@ -51,6 +51,11 @@ public class BackgroundActivity extends AppCompatActivity {
             public void onCompletion(BetterVideoPlayer player) {
 
             }
+
+            @Override
+            public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
+
+            }
         });
     }
 }

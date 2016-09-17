@@ -21,7 +21,7 @@ Also, 2 means multiple. If number of actions are 2, then it can be 10 or more.
 Instead, BetterVideoPlayer takes advantage of Toolbar API. Basically, there is a toolbar at the top of
 BetterVideoPlayer. Custom View API lets you to set title and populate a menu of actions on this toolbar.
 
-**Removed anything related to Actions. LeftAction, RightAction, BottomLabel, SubmitButton, RestartButton.**
+*Removed anything related to actions. LeftAction, RightAction, BottomLabel, SubmitButton, RetryButton.*
 
 ##### Fullscreen
 
@@ -34,9 +34,30 @@ That is why ```setAutoFullscreen()``` has been removed from the API.
 
 ## Added Features
 
-#### Subtitles
+#### Captions
 
-_TODO: Documentation for subtitles._
+BetterVideoPlayer supports captions through subtitles in 2 formats; [SRT](https://en.wikipedia.org/wiki/SubRip) and [WEBVTT](https://w3c.github.io/webvtt/).
+
+Captions can be obtained both online and from resource directory.
+
+```
+// Online SUBRIP subtitle
+bvp.setCaptions("https://www.example.com/subrip.srt", SubtitleView.SubtitleMime.SUBRIP);
+
+// res/raw SUBRIP subtitle
+bvp.setCaptions(R.raw.sub, SubtitleView.SubtitleMime.SUBRIP);
+```
+
+BetterVideoPlayer also lets you define the text size(in sp) and color of captions inside XML view.
+
+```
+<com.halilibo.bettervideoplayer.BetterVideoPlayer
+        android:id="@+id/bvp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        bvp:bvp_captionSize="20sp"
+        bvp:bvp_captionColor="@android:color/holo_blue_light"/>
+```
 
 #### Toolbar
 
@@ -44,7 +65,13 @@ _TODO: Documentation for Toolbar._
 
 #### Volume and Position Control
 
-_TODO: Explanation of volume and position control._
+_TODO: Gif for volume and position control._
 
+Volume and track position control with swipe gestures are usually supported by
+mostly used media players like VLC or MX Player. This feature lets your users to be
+familiar with your video player. For now, this option cannot be disabled but this will
+be possible in the future.
+
+#### Final note
 While I try to complete this README, you can check out Sample project of this repo. It will be updated often and
 written code sometimes help a lot more than a poorly written documentation.

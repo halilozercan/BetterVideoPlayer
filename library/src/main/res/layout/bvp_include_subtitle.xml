@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.halilibo.bettervideoplayer.subtitle.SubtitleView
+    <com.halilibo.bettervideoplayer.subtitle.CaptionsView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"

@@ -5,13 +5,12 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.halilibo.bettervideoplayer.BetterVideoCallback;
 import com.halilibo.bettervideoplayer.BetterVideoPlayer;
-import com.halilibo.bettervideoplayer.subtitle.SubtitleView;
+import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         if(savedInstanceState == null) {
             bvp.setAutoPlay(true);
             bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
-            bvp.setSubtitle(R.raw.sub, SubtitleView.SubtitleMime.SUBRIP);
+            bvp.setCaptions(R.raw.sub, CaptionsView.CMime.SUBRIP);
         }
 
         bvp.setHideControlsOnPlay(true);
@@ -92,6 +91,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCompletion(BetterVideoPlayer player) {
                 //Log.i(TAG, "Completed");
+            }
+
+            @Override
+            public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
+
             }
         });
     }

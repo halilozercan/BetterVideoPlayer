@@ -4,8 +4,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.support.annotation.DimenRes;
-import android.support.annotation.Dimension;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.text.Html;
@@ -25,23 +23,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SubtitleView extends TextView implements Runnable{
+public class CaptionsView extends TextView implements Runnable{
     private static final String TAG = "SubtitleView";
     private static final boolean DEBUG = false;
     private static final int UPDATE_INTERVAL = 50;
     private MediaPlayer player;
     private TreeMap<Long, Line> track;
-    private SubtitleMime mimeType;
+    private CMime mimeType;
 
-    public SubtitleView(Context context) {
+    public CaptionsView(Context context) {
         super(context);
     }
 
-    public SubtitleView(Context context, AttributeSet attrs) {
+    public CaptionsView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public SubtitleView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public CaptionsView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
@@ -88,13 +86,13 @@ public class SubtitleView extends TextView implements Runnable{
         this.player = player;
     }
 
-    public void setSubSource(@RawRes int ResID, SubtitleMime mime){
+    public void setCaptionsSource(@RawRes int ResID, CMime mime){
         this.mimeType = mime;
         track = getSubtitleFile(ResID);
 
     }
 
-    public void setSubSource(@Nullable Uri path, SubtitleMime mime){
+    public void setCaptionsSource(@Nullable Uri path, CMime mime){
         this.mimeType = mime;
         if(path == null){
             track = new TreeMap<>();
@@ -112,11 +110,11 @@ public class SubtitleView extends TextView implements Runnable{
     //Based on https://github.com/sannies/mp4parser/
     //Apache 2.0 Licence at: https://github.com/sannies/mp4parser/blob/master/LICENSE
 
-    public static TreeMap<Long, Line> parse(InputStream in, SubtitleMime mime) throws IOException {
-        if(mime == SubtitleMime.SUBRIP){
+    public static TreeMap<Long, Line> parse(InputStream in, CMime mime) throws IOException {
+        if(mime == CMime.SUBRIP){
             return parseSrt(in);
         }
-        else if(mime == SubtitleMime.WEBVTT){
+        else if(mime == CMime.WEBVTT){
             return parseVtt(in);
         }
 
@@ -254,7 +252,7 @@ public class SubtitleView extends TextView implements Runnable{
         }
     }
 
-    public enum SubtitleMime {
+    public enum CMime {
         SUBRIP, WEBVTT
     }
 }

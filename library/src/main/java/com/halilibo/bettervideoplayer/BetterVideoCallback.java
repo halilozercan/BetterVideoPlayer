@@ -18,4 +18,6 @@ public interface BetterVideoCallback {
     void onError(BetterVideoPlayer player, Exception e);
 
     void onCompletion(BetterVideoPlayer player);
+
+    void onToggleControls(BetterVideoPlayer player, boolean isShowing);
 }
