@@ -15,12 +15,10 @@ Better Video Player is a rethought version(fork) of [Easy Video Player](https://
 
 ## Gradle Dependency
 
-[![Release](https://jitpack.io/v/halilozercan/BetterVideoPlayer.svg)]
-(https://jitpack.io/#halilozercan/BetterVideoPlayer)
+[![Release](https://jitpack.io/v/halilozercan/BetterVideoPlayer.svg)](https://jitpack.io/#halilozercan/BetterVideoPlayer)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-The Gradle dependency is available via [![Release](https://jitpack.io/v/halilozercan/BetterVideoPlayer.svg)]
-                                       (https://jitpack.io/#halilozercan/BetterVideoPlayer)
+The Gradle dependency is available via jitpack
 
 ### Dependency
 
@@ -35,7 +33,7 @@ Add this in your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile ''com.github.halilozercan:BetterVideoPlayer:1.0.0'
+    compile 'com.github.halilozercan:BetterVideoPlayer:1.0.0'
 }
 ```
 
