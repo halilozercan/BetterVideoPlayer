@@ -15,6 +15,7 @@
         android:id="@+id/bvp"
         android:layout_width="wrap_content"
         android:layout_height="210dp"
+        bvp:bvp_loadingStyle="RotatingPlane"
         bvp:bvp_captionSize="20sp"
         bvp:bvp_captionColor="@android:color/holo_blue_light"/>
 

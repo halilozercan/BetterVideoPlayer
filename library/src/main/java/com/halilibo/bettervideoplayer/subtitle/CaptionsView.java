@@ -11,6 +11,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.halilibo.bettervideoplayer.HelperMethods;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,7 +51,7 @@ public class CaptionsView extends TextView implements Runnable{
             int seconds = player.getCurrentPosition() / 1000;
             setText(Html.fromHtml(
                     // If debug mode is on, subtitle is shown with timing
-                    (DEBUG?"[" + secondsToDuration(seconds) + "] ":"")
+                    (DEBUG?"[" + HelperMethods.secondsToDuration(seconds) + "] ":"")
                     + getTimedText(player.getCurrentPosition())));
         }
         postDelayed(this, UPDATE_INTERVAL);
@@ -62,12 +64,6 @@ public class CaptionsView extends TextView implements Runnable{
             if (currentPosition < entry.getValue().to) result = entry.getValue().text;
         }
         return result;
-    }
-
-    // To display the seconds in the duration format 00:00:00
-    public String secondsToDuration(int seconds) {
-        return String.format("%02d:%02d:%02d", seconds / 3600,
-                (seconds % 3600) / 60, (seconds % 60), Locale.US);
     }
 
     @Override
@@ -97,10 +93,14 @@ public class CaptionsView extends TextView implements Runnable{
         if(path == null){
             track = new TreeMap<>();
         }
-        try {
-            URL url = new URL(path.toString());
-            getSubtitleFile(url);
-        } catch (MalformedURLException e) {
+        if (HelperMethods.isRemotePath(path)) {
+            try {
+                URL url = new URL(path.toString());
+                getSubtitleFile(url);
+            } catch (MalformedURLException | NullPointerException e) {
+                e.printStackTrace();
+            }
+        } else {
             track = getSubtitleFile(path.toString());
         }
 
@@ -156,8 +156,8 @@ public class CaptionsView extends TextView implements Runnable{
         TreeMap<Long, Line> track = new TreeMap<>();
         r.readLine(); // Read first WEBVTT FILE cue
         r.readLine(); // Empty line after cue
-        while ((r.readLine()) != null) /*Read cue number*/{
-            String timeString = r.readLine();
+        String timeString;
+        while ((timeString = r.readLine()) != null) /*Read cue number*/{
             String lineString = "";
             String s;
             while (!((s = r.readLine()) == null || s.trim().equals(""))) {
@@ -166,20 +166,28 @@ public class CaptionsView extends TextView implements Runnable{
             // Remove unnecessary \n at the end of the string
             lineString = lineString.substring(0, lineString.length()-1);
 
-            long startTime = parseVtt(timeString.split("-->")[0]);
-            long endTime = parseVtt(timeString.split("-->")[1]);
+            long startTime = parseVtt(timeString.split(" --> ")[0]);
+            long endTime = parseVtt(timeString.split(" --> ")[1]);
             track.put(startTime, new Line(startTime, endTime, lineString));
         }
         return track;
     }
 
     private static long parseVtt(String in) {
-        long hours = Long.parseLong(in.split(":")[0].trim());
-        long minutes = Long.parseLong(in.split(":")[1].trim());
-        long seconds = Long.parseLong(in.split(":")[2].split(".")[0].trim());
-        long millies = Long.parseLong(in.split(":")[2].split(".")[1].trim());
-
-        return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
+        boolean hoursAvailable = in.split(":").length == 3;
+        if(hoursAvailable) {
+            long hours = Long.parseLong(in.split(":")[0].trim());
+            long minutes = Long.parseLong(in.split(":")[1].trim());
+            long seconds = Long.parseLong(in.split(":")[2].split("\\.")[0].trim());
+            long millies = Long.parseLong(in.split(":")[2].split("\\.")[1].trim());
+            return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
+        }
+        else{
+            long minutes = Long.parseLong(in.split(":")[0].trim());
+            long seconds = Long.parseLong(in.split(":")[1].split("\\.")[0].trim());
+            long millies = Long.parseLong(in.split(":")[1].split("\\.")[1].trim());
+            return minutes * 60 * 1000 + seconds * 1000 + millies;
+        }
 
     }
 

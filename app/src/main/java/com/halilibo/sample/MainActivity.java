@@ -16,7 +16,6 @@ public class MainActivity extends AppCompatActivity {
 
     private BetterVideoPlayer bvp;
     private String TAG = "BetterSample";
-    private boolean pausedVideo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bvp.setHideControlsOnPlay(true);
+        bvp.setMenu(R.menu.menu_dizi);
         bvp.setMenuCallback(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        bvp.setWindow(getWindow());
 
         bvp.setCallback(new BetterVideoCallback() {
             @Override
@@ -102,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause(){
-        pausedVideo = bvp.isPlaying();
         bvp.pause();
         super.onPause();
     }

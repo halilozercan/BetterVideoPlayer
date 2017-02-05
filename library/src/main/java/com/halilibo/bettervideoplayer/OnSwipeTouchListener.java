@@ -5,22 +5,24 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-public abstract class OnSwipeTouchListener implements OnTouchListener {
+abstract class OnSwipeTouchListener implements OnTouchListener {
 
-    public enum Direction{
+    enum Direction{
         LEFT, RIGHT, UP, DOWN;
     }
 
     private final static String TAG = "ClickFrame";
-
-    private final int SWIPE_THRESHOLD = 100;
+    private final static int SWIPE_THRESHOLD = 100;
 
     // 0: uninitialized
     // 1: horizontal
     // 2: vertical
     private int initialGesture;
 
-    float initialX, initialY, deltaX, deltaY;
+    protected float initialX;
+    protected float initialY;
+    private float decidedX;
+    private float decidedY;
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int action = event.getActionMasked();
@@ -30,16 +32,24 @@ public abstract class OnSwipeTouchListener implements OnTouchListener {
                 initialX = event.getX();
                 initialY = event.getY();
                 initialGesture = 0;
-
-                Log.d(TAG, "Action was DOWN");
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                deltaX = event.getX() - initialX;
-                deltaY = event.getY() - initialY;
+                float deltaX;
+                float deltaY;
+                if(initialGesture == 0) {
+                    deltaX = event.getX() - initialX;
+                    deltaY = event.getY() - initialY;
+                }
+                else{
+                    deltaX = event.getX() - decidedX;
+                    deltaY = event.getY() - decidedY;
+                }
 
                 if(initialGesture == 0 && Math.abs(deltaX) > SWIPE_THRESHOLD){
                     initialGesture = 1;
+                    decidedX = event.getX();
+                    decidedY = event.getY();
                     if(deltaX > 0){
                         onBeforeMove(Direction.RIGHT);
                     }
@@ -49,6 +59,8 @@ public abstract class OnSwipeTouchListener implements OnTouchListener {
                 }
                 else if(initialGesture == 0 && Math.abs(deltaY) > SWIPE_THRESHOLD){
                     initialGesture = 2;
+                    decidedX = event.getX();
+                    decidedY = event.getY();
                     if(deltaY > 0){
                         onBeforeMove(Direction.DOWN);
                     }
@@ -73,12 +85,10 @@ public abstract class OnSwipeTouchListener implements OnTouchListener {
                         onMove(Direction.UP, -deltaY);
                     }
                 }
-                Log.d(TAG, "Action was MOVE diffX: " + deltaX + " diffY: " + deltaY);
 
                 break;
 
             case MotionEvent.ACTION_UP:
-                Log.d(TAG, "Action was UP");
                 deltaX = event.getX() - initialX;
                 deltaY = event.getY() - initialY;
 
@@ -87,14 +97,13 @@ public abstract class OnSwipeTouchListener implements OnTouchListener {
                     return true;
                 }
                 onAfterMove();
+                initialGesture = 0;
                 return true;
 
             case MotionEvent.ACTION_CANCEL:
-                Log.d(TAG,"Action was CANCEL");
                 break;
 
             case MotionEvent.ACTION_OUTSIDE:
-                Log.d(TAG, "Movement occurred outside bounds of current screen element");
                 break;
         }
 

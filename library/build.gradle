@@ -1,23 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 
-ext {
-    PUBLISH_GROUP_ID = 'com.halilibo'
-    PUBLISH_ARTIFACT_ID = 'bettervideoplayer'
-    PUBLISH_VERSION = '0.0.1'
-    TARGET_SDK = 24
-    BUILD_TOOLS = "24.0.0"
-    GOOGLE_LIBS = "24.2.1"
-}
+group='com.github.jitpack'
 
 android {
-    compileSdkVersion TARGET_SDK
-    buildToolsVersion BUILD_TOOLS
+    compileSdkVersion project.compileSdkVersion
+    buildToolsVersion project.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion TARGET_SDK
-        versionCode 11
-        versionName PUBLISH_VERSION
+        minSdkVersion project.minSdkVersion
+        targetSdkVersion project.targetSdkVersion
+        versionCode project.publishVersionCode
+        versionName project.publishVersionName
     }
     buildTypes {
         release {
@@ -28,10 +22,44 @@ android {
 }
 
 dependencies {
+    compile "com.android.support:appcompat-v7:$project.googleAPIsVersion"
+    compile "com.android.support:support-compat:$project.googleAPIsVersion"
+    compile "com.android.support:design:$project.googleAPIsVersion"
     compile 'me.zhanghai.android.materialprogressbar:library:1.1.6'
-    compile "com.android.support:appcompat-v7:$GOOGLE_LIBS"
     compile 'org.adw.library:discrete-seekbar:1.0.1'
     compile 'com.devbrackets.android:exomedia:3.0.1'
-    compile 'com.android.support:support-compat:24.2.1'
-    compile 'com.android.support:design:24.2.1'
+    compile 'com.github.ybq:Android-SpinKit:1.1.0'
 }
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError  false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+// uncomment to build a jar file in addition to the default aar file
+//android.libraryVariants.all { variant ->
+//    def name = variant.buildType.name
+//    def task = project.tasks.create "jar${name.capitalize()}", Jar
+//    task.dependsOn variant.javaCompile
+//    task.from variant.javaCompile.destinationDir
+//    artifacts.add('archives', task);
+//}

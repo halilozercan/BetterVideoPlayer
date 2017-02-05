@@ -2,7 +2,6 @@ package com.halilibo.bettervideoplayer.utility;
 
 import com.halilibo.bettervideoplayer.BetterVideoCallback;
 import com.halilibo.bettervideoplayer.BetterVideoPlayer;
-import com.halilibo.bettervideoplayer.ProgressAction;
 
 public class EmptyCallback implements BetterVideoCallback {
     @Override

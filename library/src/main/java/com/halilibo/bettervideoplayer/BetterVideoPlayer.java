@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -14,9 +15,11 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.CheckResult;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
+import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
 import android.support.annotation.MenuRes;
 import android.support.annotation.NonNull;
@@ -32,6 +35,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -39,13 +44,25 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.github.ybq.android.spinkit.SpinKitView;
+import com.github.ybq.android.spinkit.style.ChasingDots;
+import com.github.ybq.android.spinkit.style.Circle;
+import com.github.ybq.android.spinkit.style.CubeGrid;
+import com.github.ybq.android.spinkit.style.DoubleBounce;
+import com.github.ybq.android.spinkit.style.FadingCircle;
+import com.github.ybq.android.spinkit.style.Pulse;
+import com.github.ybq.android.spinkit.style.RotatingCircle;
+import com.github.ybq.android.spinkit.style.RotatingPlane;
+import com.github.ybq.android.spinkit.style.ThreeBounce;
+import com.github.ybq.android.spinkit.style.WanderingCubes;
+import com.github.ybq.android.spinkit.style.Wave;
 import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 import com.halilibo.bettervideoplayer.utility.EmptyCallback;
 import com.halilibo.bettervideoplayer.utility.Util;
 
 import java.io.IOException;
-
-import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author Aidan Follestad (halilibo)
@@ -56,21 +73,47 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnErrorListener,
         View.OnClickListener, SeekBar.OnSeekBarChangeListener{
 
-    private MaterialProgressBar mProgressBar;
-    private TextView mPositionTextView;
-    private LayoutParams mControlsLp;
-    private boolean mLoop = false;
-    private CaptionsView mSubView;
-
-    private AudioManager am;
+    private static final String BETTER_VIDEO_PLAYER_BRIGHTNESS = "BETTER_VIDEO_PLAYER_BRIGHTNESS";
     private static final int UPDATE_INTERVAL = 100;
-    private LayoutParams mSubtitlesLp;
+
+    private SpinKitView mProgressBar;
+    private TextView mPositionTextView;
+    private boolean mLoop = false;
+
+    private CaptionsView mSubView;
+    private AudioManager am;
     private Toolbar mToolbar;
     private int mMenuId;
     private Toolbar.OnMenuItemClickListener menuItemClickListener;
     private String mTitle;
     private int mSubViewTextSize;
     private int mSubViewTextColor;
+
+    /**
+     * Window that hold the player. Useful for setting brightness.
+     */
+    private Window mWindow;
+
+    private static final int DOUBLE_BOUNCE = 0;
+    private static final int ROTATING_PLANE = 1;
+    private static final int WAVE = 2;
+    private static final int WANDERING_CUBES = 3;
+    private static final int PULSE = 4;
+    private static final int CHASING_DOTS = 5;
+    private static final int THREE_BOUNCE = 6;
+    private static final int CIRCLE = 7;
+    private static final int CUBE_GRID = 8;
+    private static final int FADING_CIRCLE = 9;
+    private static final int ROTATING_CIRCLE = 10;
+    private int mLoadingStyle;
+
+    @IntDef({DOUBLE_BOUNCE, ROTATING_PLANE, WAVE,
+            WANDERING_CUBES, PULSE, CHASING_DOTS,
+            THREE_BOUNCE, CIRCLE, CUBE_GRID,
+            FADING_CIRCLE, ROTATING_CIRCLE})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface LoadingStyle {
+    }
 
     public BetterVideoPlayer(Context context) {
         super(context);
@@ -90,8 +133,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private View mControlsFrame;
     private View mProgressFrame;
     private View mClickFrame;
-    private View mTextureFrame;
-    private View mSubtitlesFrame;
     private View mTooolbarFrame;
 
     private MediaPlayer mPlayer;
@@ -124,114 +165,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private int mInitialPosition = -1;
     private boolean mControlsDisabled;
 
-    OnSwipeTouchListener clickFrameSwipeListener = new OnSwipeTouchListener(){
-
-        float diffTime = -1, finalTime = -1;
-        int startVolume;
-        int maxVolume;
-        @Override
-        public void onMove(Direction dir, float diff) {
-            Log.d("ClickFrame", dir + " " + diff);
-            if(dir == Direction.LEFT || dir == Direction.RIGHT) {
-                if(mPlayer.getDuration() <= 60){
-                    diffTime = (float) mPlayer.getDuration() * diff / ((float) mInitialTextureWidth);
-                    LOG("Difftime is %f and duration %d, physical diff %f", diffTime, mPlayer.getDuration(), diff);
-                }
-                else{
-                    diffTime = (float) 60000 * diff / ((float) mInitialTextureWidth);
-                }
-                if (dir == Direction.LEFT) {
-                    diffTime = -diffTime;
-                }
-                finalTime = mPlayer.getCurrentPosition() + diffTime;
-                if (finalTime < 0) {
-                    finalTime = 0;
-                }
-                else if (finalTime > mPlayer.getDuration()) {
-                    finalTime = mPlayer.getDuration();
-                }
-                diffTime = finalTime - mPlayer.getCurrentPosition();
-
-                String progressText =
-                        Util.getDurationString((long) finalTime, false) +
-                                " [" + (dir == Direction.LEFT ? "-":"+") +
-                                Util.getDurationString((long) diffTime, false) +
-                                "]";
-                mPositionTextView.setText(progressText);
-            }
-            else{
-                finalTime = -1;
-                float diffVolume;
-                int finalVolume;
-
-                diffVolume = (float) maxVolume * diff / ((float) mInitialTextureHeight / 2);
-                Log.d("VolumeControl", (diff / (float) mInitialTextureHeight) + " " + diff + " " + mInitialTextureHeight);
-                if (dir == Direction.DOWN) {
-                    diffVolume = -diffVolume;
-                }
-                finalVolume = startVolume + (int)diffVolume;
-                if (finalVolume < 0)
-                    finalVolume = 0;
-                else if (finalVolume > maxVolume)
-                    finalVolume = maxVolume;
-
-                String progressText = String.format(getContext().getString(R.string.volume), finalVolume);
-                mPositionTextView.setText(progressText);
-                am.setStreamVolume(AudioManager.STREAM_MUSIC, finalVolume, 0);
-            }
-        }
-
-        @Override
-        public void onClick() {
-            toggleControls();
-        }
-
-        @Override
-        public void onAfterMove() {
-            if(finalTime >= 0) {
-                seekTo((int) finalTime);
-                if (mWasPlaying) mPlayer.start();
-            }
-            mPositionTextView.setVisibility(GONE);
-        }
-
-        @Override
-        public void onBeforeMove(Direction dir) {
-            if(dir == Direction.LEFT || dir == Direction.RIGHT) {
-                mWasPlaying = isPlaying();
-                if (mWasPlaying)
-                    mPlayer.pause(); // keeps the time updater running, unlike pause()
-                mPositionTextView.setVisibility(VISIBLE);
-            }
-            else{
-                maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-                startVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-                mPositionTextView.setVisibility(VISIBLE);
-            }
-        }
-    };
-
-    // Runnable used to run code on an interval to update counters and seeker
-    private final Runnable mUpdateCounters = new Runnable() {
-        @Override
-        public void run() {
-            if (mHandler == null || !mIsPrepared || mSeeker == null || mPlayer == null)
-                return;
-            long pos = mPlayer.getCurrentPosition();
-            final long dur = mPlayer.getDuration();
-            if (pos > dur) pos = dur;
-            mLabelPosition.setText(Util.getDurationString(pos, false));
-            mLabelDuration.setText(Util.getDurationString(dur - pos, true));
-            mSeeker.setProgress((int) pos);
-            mSeeker.setMax((int) dur);
-
-            if (mProgressCallback != null)
-                mProgressCallback.onVideoProgressUpdate((int)pos, (int)dur);
-            if (mHandler != null)
-                mHandler.postDelayed(this, UPDATE_INTERVAL);
-        }
-    };
-
 
     private void init(Context context, AttributeSet attrs) {
         setBackgroundColor(Color.BLACK);
@@ -254,6 +187,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                 mPlayDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_playDrawable);
                 mPauseDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_pauseDrawable);
                 mRestartDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_restartDrawable);
+                mLoadingStyle = a.getInt(R.styleable.SpinKitView_SpinKit_Style, 0);
 
                 mHideControlsOnPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_hideControlsOnPlay, false);
                 mAutoPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_autoPlay, false);
@@ -263,7 +197,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                         getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
                 mSubViewTextColor = a.getColor(R.styleable.BetterVideoPlayer_bvp_captionColor,
                         getResources().getColor(R.color.bvp_subtitle_color));
-                LOG("SubtitleColor %d", mSubViewTextColor);
 
                 mMenuId = a.getResourceId(R.styleable.BetterVideoPlayer_bvp_menu, R.menu.base);
 
@@ -279,6 +212,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             mHideControlsOnPlay = false;
             mAutoPlay = false;
             mLoop = false;
+            mLoadingStyle = 0;
             mControlsDisabled = false;
             mMenuId = R.menu.base;
             mSubViewTextSize = getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size);
@@ -356,6 +290,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     @Override
     public void setPauseDrawable(@DrawableRes int res) {
         setPauseDrawable(ContextCompat.getDrawable(getContext(), res));
+    }
+
+    @Override
+    public void setWindow(@NonNull Window window) {
+        mWindow = window;
     }
 
     @Override
@@ -533,7 +472,8 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mPlayer.seekTo(pos);
     }
 
-    public void setVolume(@FloatRange(from = 0f, to = 1f) float leftVolume, @FloatRange(from = 0f, to = 1f) float rightVolume) {
+    public void setVolume(@FloatRange(from = 0f, to = 1f) float leftVolume,
+                          @FloatRange(from = 0f, to = 1f) float rightVolume) {
         if (mPlayer == null || !mIsPrepared)
             throw new IllegalStateException("You cannot use setVolume(float, float) until the player is prepared.");
         mPlayer.setVolume(leftVolume, rightVolume);
@@ -616,6 +556,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mSurfaceAvailable = true;
         mSurface = new Surface(surfaceTexture);
         if (mIsPrepared) {
+            LOG("Surface texture available and media player is prepared");
             mPlayer.setSurface(mSurface);
         } else {
             prepare();
@@ -649,8 +590,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mProgressBar.setVisibility(View.INVISIBLE);
         showControls();
         mIsPrepared = true;
-        if (mCallback != null)
+
+        if (mCallback != null) {
             mCallback.onPrepared(this);
+        }
+
         mLabelPosition.setText(Util.getDurationString(0, false));
         mLabelDuration.setText(Util.getDurationString(mediaPlayer.getDuration(), false));
         mSeeker.setProgress(0);
@@ -764,7 +708,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
         // Instantiate and add TextureView for rendering
         final LayoutInflater li = LayoutInflater.from(getContext());
-        mTextureFrame = li.inflate(R.layout.bvp_include_surface, this, false);
+        View mTextureFrame = li.inflate(R.layout.bvp_include_surface, this, false);
         addView(mTextureFrame);
 
         mTextureView = (TextureView) mTextureFrame.findViewById(R.id.textureview);
@@ -772,7 +716,14 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
         // Inflate and add progress
         mProgressFrame = li.inflate(R.layout.bvp_include_progress, this, false);
-        mProgressBar = (MaterialProgressBar) mProgressFrame.findViewById(R.id.material_progressbar);
+        mProgressBar = (SpinKitView) mProgressFrame.findViewById(R.id.spin_kit);
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = getContext().getTheme();
+        theme.resolveAttribute(R.attr.colorAccent, typedValue, true);
+        int color = typedValue.data;
+        mProgressBar.setColor(color);
+        setLoadingStyle(mLoadingStyle);
+
         mPositionTextView = (TextView)mProgressFrame.findViewById(R.id.position_textview);
         mPositionTextView.setShadowLayer(3,3,3,Color.BLACK);
         addView(mProgressFrame);
@@ -787,8 +738,8 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
         // Inflate controls
         mControlsFrame = li.inflate(R.layout.bvp_include_controls, this, false);
-        mControlsLp = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT);
+        LayoutParams mControlsLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
         mControlsLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         addView(mControlsFrame, mControlsLp);
 
@@ -803,9 +754,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         addView(mTooolbarFrame);
 
         // Inflate subtitles
-        mSubtitlesFrame = li.inflate(R.layout.bvp_include_subtitle, this, false);
-        mSubtitlesLp = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
+        View mSubtitlesFrame = li.inflate(R.layout.bvp_include_subtitle, this, false);
+        LayoutParams mSubtitlesLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
         mSubtitlesLp.addRule(RelativeLayout.ABOVE, R.id.bvp_include_relativelayout);
         mSubtitlesLp.alignWithParent = true;
 
@@ -954,4 +905,194 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     public void setLoop(boolean loop){
         this.mLoop = loop;
     }
+
+    @Override
+    public void setLoadingStyle(@LoadingStyle int style) {
+        Drawable drawable;
+        switch (style){
+            case DOUBLE_BOUNCE:
+                drawable = new DoubleBounce();
+                break;
+            case ROTATING_PLANE:
+                drawable = new RotatingPlane();
+                break;
+            case WAVE:
+                drawable = new Wave();
+                break;
+            case WANDERING_CUBES:
+                drawable = new WanderingCubes();
+                break;
+            case PULSE:
+                drawable = new Pulse();
+                break;
+            case CHASING_DOTS:
+                drawable = new ChasingDots();
+                break;
+            case THREE_BOUNCE:
+                drawable = new ThreeBounce();
+                break;
+            case CIRCLE:
+                drawable = new Circle();
+                break;
+            case CUBE_GRID:
+                drawable = new CubeGrid();
+                break;
+            case FADING_CIRCLE:
+                drawable = new FadingCircle();
+                break;
+            case ROTATING_CIRCLE :
+                drawable = new RotatingCircle();
+                break;
+            default:
+                drawable = new ThreeBounce();
+                break;
+        }
+        mProgressBar.setIndeterminateDrawable(drawable);
+    }
+
+    OnSwipeTouchListener clickFrameSwipeListener = new OnSwipeTouchListener(){
+
+        float diffTime = -1, finalTime = -1;
+        int startVolume;
+        int maxVolume;
+        int startBrightness;
+        int maxBrightness;
+        @Override
+        public void onMove(Direction dir, float diff) {
+            Log.d("ClickFrame", dir + " " + diff);
+            if(dir == Direction.LEFT || dir == Direction.RIGHT) {
+                if(mPlayer.getDuration() <= 60){
+                    diffTime = (float) mPlayer.getDuration() * diff / ((float) mInitialTextureWidth);
+                    LOG("Difftime is %f and duration %d, physical diff %f", diffTime, mPlayer.getDuration(), diff);
+                }
+                else{
+                    diffTime = (float) 60000 * diff / ((float) mInitialTextureWidth);
+                }
+                if (dir == Direction.LEFT) {
+                    diffTime = -diffTime;
+                }
+                finalTime = mPlayer.getCurrentPosition() + diffTime;
+                if (finalTime < 0) {
+                    finalTime = 0;
+                }
+                else if (finalTime > mPlayer.getDuration()) {
+                    finalTime = mPlayer.getDuration();
+                }
+                diffTime = finalTime - mPlayer.getCurrentPosition();
+
+                String progressText =
+                        Util.getDurationString((long) finalTime, false) +
+                                " [" + (dir == Direction.LEFT ? "-":"+") +
+                                Util.getDurationString((long) diffTime, false) +
+                                "]";
+                mPositionTextView.setText(progressText);
+            }
+            else{
+                finalTime = -1;
+                if(initialX >= mInitialTextureWidth/2 ||
+                        mWindow==null) {
+                    float diffVolume;
+                    int finalVolume;
+
+                    diffVolume = (float) maxVolume * diff / ((float) mInitialTextureHeight / 2);
+                    Log.d("VolumeControl", (diff / (float) mInitialTextureHeight) + " " + diff + " " + mInitialTextureHeight);
+                    if (dir == Direction.DOWN) {
+                        diffVolume = -diffVolume;
+                    }
+                    finalVolume = startVolume + (int) diffVolume;
+                    if (finalVolume < 0)
+                        finalVolume = 0;
+                    else if (finalVolume > maxVolume)
+                        finalVolume = maxVolume;
+
+                    String progressText = String.format(
+                            getResources().getString(R.string.volume), finalVolume
+                    );
+                    mPositionTextView.setText(progressText);
+                    am.setStreamVolume(AudioManager.STREAM_MUSIC, finalVolume, 0);
+                }
+                else if(initialX < mInitialTextureWidth/2){
+                    float diffBrightness;
+                    int finalBrightness;
+
+                    diffBrightness = (float) maxBrightness * diff / ((float) mInitialTextureHeight / 2);
+                    if (dir == Direction.DOWN) {
+                        diffBrightness = -diffBrightness;
+                    }
+                    finalBrightness = startBrightness + (int) diffBrightness;
+                    if (finalBrightness < 0)
+                        finalBrightness = 0;
+                    else if (finalBrightness > maxBrightness)
+                        finalBrightness = maxBrightness;
+
+                    String progressText = String.format(
+                            getResources().getString(R.string.brightness), finalBrightness
+                    );
+                    mPositionTextView.setText(progressText);
+
+                    WindowManager.LayoutParams layout = mWindow.getAttributes();
+                    layout.screenBrightness = (float)finalBrightness / 100;
+                    mWindow.setAttributes(layout);
+
+                    PreferenceManager.getDefaultSharedPreferences(getContext())
+                            .edit()
+                            .putInt(BETTER_VIDEO_PLAYER_BRIGHTNESS, finalBrightness)
+                            .apply();
+                }
+            }
+        }
+
+        @Override
+        public void onClick() {
+            toggleControls();
+        }
+
+        @Override
+        public void onAfterMove() {
+            if(finalTime >= 0) {
+                seekTo((int) finalTime);
+                if (mWasPlaying) mPlayer.start();
+            }
+            mPositionTextView.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onBeforeMove(Direction dir) {
+            if(dir == Direction.LEFT || dir == Direction.RIGHT) {
+                mWasPlaying = isPlaying();
+                mPlayer.pause();
+                mPositionTextView.setVisibility(View.VISIBLE);
+            }
+            else{
+                maxBrightness = 100;
+                if(mWindow!=null) {
+                    startBrightness = (int) (mWindow.getAttributes().screenBrightness * 100);
+                }
+                maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                startVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                mPositionTextView.setVisibility(View.VISIBLE);
+            }
+        }
+    };
+
+    // Runnable used to run code on an interval to update counters and seeker
+    private final Runnable mUpdateCounters = new Runnable() {
+        @Override
+        public void run() {
+            if (mHandler == null || !mIsPrepared || mSeeker == null || mPlayer == null)
+                return;
+            long pos = mPlayer.getCurrentPosition();
+            final long dur = mPlayer.getDuration();
+            if (pos > dur) pos = dur;
+            mLabelPosition.setText(Util.getDurationString(pos, false));
+            mLabelDuration.setText(Util.getDurationString(dur - pos, true));
+            mSeeker.setProgress((int) pos);
+            mSeeker.setMax((int) dur);
+
+            if (mProgressCallback != null)
+                mProgressCallback.onVideoProgressUpdate((int)pos, (int)dur);
+            if (mHandler != null)
+                mHandler.postDelayed(this, UPDATE_INTERVAL);
+        }
+    };
 }

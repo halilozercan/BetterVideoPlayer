@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RawRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.Toolbar;
+import android.view.Window;
 
 import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 
@@ -40,6 +41,12 @@ interface IUserMethods {
     void setPauseDrawable(@NonNull Drawable drawable);
 
     void setPauseDrawable(@DrawableRes int res);
+
+    /**
+     Required to activate brightness setting.
+     @param window; Current window that BetterVideoPlayer is part of.
+     */
+    void setWindow(@NonNull Window window);
 
     void setHideControlsOnPlay(boolean hide);
 
@@ -93,4 +100,6 @@ interface IUserMethods {
     void removeCaptions();
 
     void setLoop(boolean loop);
+
+    void setLoadingStyle(@BetterVideoPlayer.LoadingStyle int style);
 }
