@@ -18,7 +18,8 @@
         android:layout_toStartOf="@+id/duration"
         android:layout_toEndOf="@+id/position"
         android:layout_alignBottom="@+id/btnPlayPause"
-        android:layout_alignTop="@+id/btnPlayPause" />
+        android:layout_alignTop="@+id/btnPlayPause"
+        android:maxHeight="1000dp" />
 
     <TextView
         android:id="@+id/position"
