@@ -37,3 +37,17 @@
 9
 00:00:23,791 --> 00:00:26,392
 <i>Subtitle 10</i>
+
+10
+00:00:26,791 --> 00:00:29,392
+<i>Subtitle 11</i>
+<i>New line</i>
+
+11
+00:00:29,791 --> 00:00:45,392
+<i>Subtitle 12</i>
+
+<i>New line</i>
+<i>Another new line</i>
+
+<i>Final line</i>

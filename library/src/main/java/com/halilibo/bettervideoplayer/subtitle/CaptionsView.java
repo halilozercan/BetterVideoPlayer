@@ -21,12 +21,12 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class CaptionsView extends TextView implements Runnable{
     private static final String TAG = "SubtitleView";
+    private static final String LINE_BREAK = "<br/>";
     private static final boolean DEBUG = false;
     private static final int UPDATE_INTERVAL = 50;
     private MediaPlayer player;
@@ -121,31 +121,106 @@ public class CaptionsView extends TextView implements Runnable{
         return parseSrt(in);
     }
 
+    private enum TrackParseState {
+        NEW_TRACK,
+        PARSED_CUE,
+        PARSED_TIME,
+    }
+
     public static TreeMap<Long, Line> parseSrt(InputStream is) throws IOException {
         LineNumberReader r = new LineNumberReader(new InputStreamReader(is, "UTF-8"));
         TreeMap<Long, Line> track = new TreeMap<>();
-        while ((r.readLine()) != null) /*Read cue number*/{
-            String timeString = r.readLine();
-            String lineString = "";
-            String s;
-            while (!((s = r.readLine()) == null || s.trim().equals(""))) {
-                lineString += s + "\n";
+        String lineEntry;
+        StringBuilder textStringBuilder = new StringBuilder();
+        Line line = null;
+        TrackParseState state = TrackParseState.NEW_TRACK;
+        int lineNumber = 0;
+        while ((lineEntry = r.readLine()) != null){
+            lineNumber++;
+            if(state == TrackParseState.NEW_TRACK) {
+                // Try to parse the cue number.
+                if(lineEntry.isEmpty()) {
+                    // empty string, move along.
+                    continue;
+                } else if(isInteger(lineEntry)) {
+                    // We've reach a new cue.
+                    state = TrackParseState.PARSED_CUE;
+                    if(line != null && textStringBuilder.length() > 0) {
+                        // Add the previous track.
+                        String lineText = textStringBuilder.toString();
+                        line.setText(lineText.substring(0, lineText.length() - LINE_BREAK.length()));
+                        addTrack(track, line);
+                        line = null;
+                        textStringBuilder.setLength(0); // reset the string builder
+                    }
+                    continue;
+                } else {
+                    if (textStringBuilder.length() > 0) {
+                        // Support invalid formats which have line spaces between text.
+                        textStringBuilder.append(lineEntry).append(LINE_BREAK);
+                        continue;
+                    }
+                    // Be lenient, just log the error and move along.
+                    Log.w(TAG, "No cue number found at line: " + lineNumber);
+                }
             }
-            // Remove unnecessary \n at the end of the string
-            lineString = lineString.substring(0, lineString.length()-1);
 
-            long startTime = parseSrt(timeString.split("-->")[0]);
-            long endTime = parseSrt(timeString.split("-->")[1]);
-            track.put(startTime, new Line(startTime, endTime, lineString));
+            if(state == TrackParseState.PARSED_CUE) {
+                // Try to parse the time codes.
+                String[] times = lineEntry.split("-->");
+                if(times.length == 2) {
+                    long startTime = parseSrt(times[0]);
+                    long endTime = parseSrt(times[1]);
+                    line = new Line(startTime, endTime);
+                    state = TrackParseState.PARSED_TIME;
+                    continue;
+                }
+                // Handle invalid formats gracefully. Better to have some subtitle than none.
+                Log.w(TAG, "No time-code found at line: " + lineNumber);
+            }
+
+            if(state == TrackParseState.PARSED_TIME) {
+                // Try to parse the text.
+                if(!lineEntry.isEmpty()) {
+                    textStringBuilder.append(lineEntry).append(LINE_BREAK);
+                } else {
+                    state = TrackParseState.NEW_TRACK;
+                }
+            }
         }
+        if(line != null && textStringBuilder.length() > 0) {
+            // Add the final track.
+            String lineText = textStringBuilder.toString();
+            line.setText(lineText.substring(0, lineText.length() - LINE_BREAK.length()));
+            addTrack(track, line);
+        }
+
         return track;
     }
 
+    private static void addTrack( TreeMap<Long, Line> track, Line line) {
+        track.put(line.from, line);
+    }
+
+    private static boolean isInteger(String s) {
+        if(s.isEmpty()) return false;
+        for(int i = 0; i < s.length(); i++) {
+            if(i == 0 && s.charAt(i) == '-') {
+                if(s.length() == 1) return false;
+                else continue;
+            }
+            if(Character.digit(s.charAt(i), 10) < 0) return false;
+        }
+        return true;
+    }
+
     private static long parseSrt(String in) {
-        long hours = Long.parseLong(in.split(":")[0].trim());
-        long minutes = Long.parseLong(in.split(":")[1].trim());
-        long seconds = Long.parseLong(in.split(":")[2].split(",")[0].trim());
-        long millies = Long.parseLong(in.split(":")[2].split(",")[1].trim());
+        String[] timeSections = in.split(":");
+        String[] secondAndMillisecond = timeSections[2].split(",");
+        long hours = Long.parseLong(timeSections[0].trim());
+        long minutes = Long.parseLong(timeSections[1].trim());
+        long seconds = Long.parseLong(secondAndMillisecond[0].trim());
+        long millies = Long.parseLong(secondAndMillisecond[1].trim());
 
         return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
 
@@ -161,31 +236,37 @@ public class CaptionsView extends TextView implements Runnable{
             String lineString = "";
             String s;
             while (!((s = r.readLine()) == null || s.trim().equals(""))) {
-                lineString += s + "\n";
+                lineString += s + LINE_BREAK;
             }
-            // Remove unnecessary \n at the end of the string
-            lineString = lineString.substring(0, lineString.length()-1);
+            // Remove final line-break at the end of the string
+            lineString = lineString.substring(0, lineString.length() - LINE_BREAK.length());
 
-            long startTime = parseVtt(timeString.split(" --> ")[0]);
-            long endTime = parseVtt(timeString.split(" --> ")[1]);
-            track.put(startTime, new Line(startTime, endTime, lineString));
+            String[] times = timeString.split(" --> ");
+            if(times.length == 2) {
+                long startTime = parseVtt(times[0]);
+                long endTime = parseVtt(times[1]);
+                track.put(startTime, new Line(startTime, endTime, lineString));
+            }
         }
         return track;
     }
 
     private static long parseVtt(String in) {
-        boolean hoursAvailable = in.split(":").length == 3;
+        String[] timeUnits = in.split(":");
+        boolean hoursAvailable = timeUnits.length == 3;
         if(hoursAvailable) {
-            long hours = Long.parseLong(in.split(":")[0].trim());
-            long minutes = Long.parseLong(in.split(":")[1].trim());
-            long seconds = Long.parseLong(in.split(":")[2].split("\\.")[0].trim());
-            long millies = Long.parseLong(in.split(":")[2].split("\\.")[1].trim());
+            String[] secondAndMillisecond = timeUnits[2].split("\\.");
+            long hours = Long.parseLong(timeUnits[0].trim());
+            long minutes = Long.parseLong(timeUnits[1].trim());
+            long seconds = Long.parseLong(secondAndMillisecond[0].trim());
+            long millies = Long.parseLong(secondAndMillisecond[1].trim());
             return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000 + millies;
         }
         else{
-            long minutes = Long.parseLong(in.split(":")[0].trim());
-            long seconds = Long.parseLong(in.split(":")[1].split("\\.")[0].trim());
-            long millies = Long.parseLong(in.split(":")[1].split("\\.")[1].trim());
+            String[] secondAndMillisecond = timeUnits[1].split("\\.");
+            long minutes = Long.parseLong(timeUnits[0].trim());
+            long seconds = Long.parseLong(secondAndMillisecond[0].trim());
+            long millies = Long.parseLong(secondAndMillisecond[1].trim());
             return minutes * 60 * 1000 + seconds * 1000 + millies;
         }
 
@@ -252,10 +333,18 @@ public class CaptionsView extends TextView implements Runnable{
         long to;
         String text;
 
-
         public Line(long from, long to, String text) {
             this.from = from;
             this.to = to;
+            this.text = text;
+        }
+
+        public Line(long from, long to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        public void setText(String text) {
             this.text = text;
         }
     }
