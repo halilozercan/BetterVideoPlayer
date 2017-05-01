@@ -161,8 +161,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private Drawable mRestartDrawable;
 
     private boolean mHideControlsOnPlay = false;
+    private boolean mShowTotalDuration = false;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
+    private int mHideControlsDuration = 2000; // defaults to 2 seconds.
     private boolean mControlsDisabled;
 
 
@@ -188,10 +190,12 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                 mPauseDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_pauseDrawable);
                 mRestartDrawable = a.getDrawable(R.styleable.BetterVideoPlayer_bvp_restartDrawable);
                 mLoadingStyle = a.getInt(R.styleable.SpinKitView_SpinKit_Style, 0);
+                mHideControlsDuration = a.getInteger(R.styleable.BetterVideoPlayer_bvp_hideControlsDuration, mHideControlsDuration);
 
                 mHideControlsOnPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_hideControlsOnPlay, false);
                 mAutoPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_autoPlay, false);
                 mLoop = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_loop, false);
+                mShowTotalDuration = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_showTotalDuration, false);
                 mControlsDisabled = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_disableControls, false);
                 mSubViewTextSize = a.getDimensionPixelSize(R.styleable.BetterVideoPlayer_bvp_captionSize,
                         getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
@@ -302,6 +306,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mHideControlsOnPlay = hide;
     }
 
+    public void setShowTotalDuration(boolean showTotalDuration) {
+        this.mShowTotalDuration = showTotalDuration;
+    }
+
     @Override
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
@@ -353,8 +361,16 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
-        mControlsFrame.animate().alpha(1f).setListener(null)
+        mControlsFrame.animate().alpha(1f).translationY(0).setListener(null)
                 .setInterpolator(new DecelerateInterpolator()).start();
+
+        final View subViewParent = (View) mSubView.getParent();
+        subViewParent.animate().cancel();
+        subViewParent.setTranslationY(mControlsFrame.getHeight());
+        subViewParent.animate()
+                .translationY(0)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
 
         mTooolbarFrame.animate().cancel();
         mTooolbarFrame.setAlpha(0f);
@@ -370,14 +386,29 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             return;
         mControlsFrame.animate().cancel();
         mControlsFrame.setAlpha(1f);
+        mControlsFrame.setTranslationY(0f);
         mControlsFrame.setVisibility(View.VISIBLE);
-        mControlsFrame.animate().alpha(0f)
+        mControlsFrame.animate()
+                .alpha(0f)
+                .translationY(mControlsFrame.getHeight())
                 .setInterpolator(new DecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         if (mControlsFrame != null)
                             mControlsFrame.setVisibility(View.GONE);
+                    }
+                }).start();
+
+        final View subViewParent = (View) mSubView.getParent();
+        subViewParent.animate().cancel();
+        subViewParent.animate()
+                .translationY(mControlsFrame.getHeight())
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        subViewParent.setTranslationY(0);
                     }
                 }).start();
 
@@ -408,6 +439,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         if (isControlsShown()) {
             hideControls();
         } else {
+            if(mHideControlsDuration >= 0) {
+                mHandler.removeCallbacks(hideControlsRunnable);
+                mHandler.postDelayed(hideControlsRunnable, mHideControlsDuration);
+            }
             showControls();
         }
     }
@@ -620,11 +655,17 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     @Override
     public void onBufferingUpdate(MediaPlayer mediaPlayer, int percent) {
         LOG("Buffering: %d%%", percent);
-        if (mCallback != null)
+        if (mCallback != null) {
             mCallback.onBuffering(percent);
+        }
         if (mSeeker != null) {
-            if (percent == 100) mSeeker.setSecondaryProgress(0);
-            else mSeeker.setSecondaryProgress(mSeeker.getMax() * (percent / 100));
+            if (percent == 100) {
+                mSeeker.setSecondaryProgress(0);
+            } else {
+                float percentage = percent / 100f;
+                int secondaryProgress = (int) (mSeeker.getMax() * percentage);
+                mSeeker.setSecondaryProgress(secondaryProgress);
+            }
         }
     }
 
@@ -814,10 +855,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        if (b) {
-            seekTo(i);
-            mPositionTextView.setText(Util.getDurationString(i, false));
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if (fromUser) {
+            seekTo(progress);
+            mPositionTextView.setText(Util.getDurationString(progress, false));
         }
     }
 
@@ -867,8 +908,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     // Utilities
 
     private static void LOG(String message, Object... args) {
-        if (args != null)
+        if (args != null && args.length > 0) {
             message = String.format(message, args);
+        }
         Log.d("BetterVideoPlayer", message);
     }
 
@@ -1085,7 +1127,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             final long dur = mPlayer.getDuration();
             if (pos > dur) pos = dur;
             mLabelPosition.setText(Util.getDurationString(pos, false));
-            mLabelDuration.setText(Util.getDurationString(dur - pos, true));
+            if(mShowTotalDuration) {
+                mLabelDuration.setText(Util.getDurationString(dur, false));
+            } else {
+                mLabelDuration.setText(Util.getDurationString(dur - pos, true));
+            }
             mSeeker.setProgress((int) pos);
             mSeeker.setMax((int) dur);
 

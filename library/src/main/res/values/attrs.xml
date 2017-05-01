@@ -28,6 +28,8 @@
         <attr name="bvp_hideControlsOnPlay" format="boolean" />
         <attr name="bvp_autoPlay" format="boolean" />
         <attr name="bvp_loop" format="boolean" />
+        <attr name="bvp_showTotalDuration" format="boolean" />
+        <attr name="bvp_hideControlsDuration" format="integer" />
 
         <attr name="bvp_disableControls" format="boolean" />
 
