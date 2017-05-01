@@ -6,10 +6,10 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.halilibo.bettervideoplayer.HelperMethods;
 
@@ -24,7 +24,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CaptionsView extends TextView implements Runnable{
+public class CaptionsView extends AppCompatTextView implements Runnable{
     private static final String TAG = "SubtitleView";
     private static final String LINE_BREAK = "<br/>";
     private static final boolean DEBUG = false;
@@ -32,6 +32,13 @@ public class CaptionsView extends TextView implements Runnable{
     private MediaPlayer player;
     private TreeMap<Long, Line> track;
     private CMime mimeType;
+
+    private CaptionsViewLoadListener captionsViewLoadListener;
+
+    public interface CaptionsViewLoadListener {
+        void onCaptionLoadSuccess(@Nullable String path, int resId);
+        void onCaptionLoadFailed(Throwable error, @Nullable String path, int resId);
+    }
 
     public CaptionsView(Context context) {
         super(context);
@@ -82,6 +89,10 @@ public class CaptionsView extends TextView implements Runnable{
         this.player = player;
     }
 
+    public void setCaptionsViewLoadListener(CaptionsViewLoadListener listener) {
+        this.captionsViewLoadListener = listener;
+    }
+
     public void setCaptionsSource(@RawRes int ResID, CMime mime){
         this.mimeType = mime;
         track = getSubtitleFile(ResID);
@@ -98,6 +109,9 @@ public class CaptionsView extends TextView implements Runnable{
                 URL url = new URL(path.toString());
                 getSubtitleFile(url);
             } catch (MalformedURLException | NullPointerException e) {
+                if(captionsViewLoadListener != null) {
+                    captionsViewLoadListener.onCaptionLoadFailed(e, path.toString(), 0);
+                }
                 e.printStackTrace();
             }
         } else {
@@ -276,8 +290,15 @@ public class CaptionsView extends TextView implements Runnable{
         InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(new File(path));
-            return parse(inputStream, mimeType);
+            TreeMap<Long, Line> tracks = parse(inputStream, mimeType);
+            if(captionsViewLoadListener != null) {
+                captionsViewLoadListener.onCaptionLoadSuccess(path, 0);
+            }
+            return tracks;
         } catch (Exception e) {
+            if(captionsViewLoadListener != null) {
+                captionsViewLoadListener.onCaptionLoadFailed(e, path, 0);
+            }
             e.printStackTrace();
         } finally {
             if (inputStream != null) {
@@ -295,8 +316,15 @@ public class CaptionsView extends TextView implements Runnable{
         InputStream inputStream = null;
         try {
             inputStream = getResources().openRawResource(resId);
-            return parse(inputStream, mimeType);
+            TreeMap<Long, Line> result = parse(inputStream, mimeType);
+            if(captionsViewLoadListener != null) {
+                captionsViewLoadListener.onCaptionLoadSuccess(null, resId);
+            }
+            return result;
         } catch (Exception e) {
+            if(captionsViewLoadListener != null) {
+                captionsViewLoadListener.onCaptionLoadFailed(e, null, resId);
+            }
             e.printStackTrace();
         } finally {
             if (inputStream != null) {
@@ -310,18 +338,26 @@ public class CaptionsView extends TextView implements Runnable{
         return null;
     }
 
-    private void getSubtitleFile(URL url) {
+    private void getSubtitleFile(final URL url) {
         DownloadFile downloader = new DownloadFile(getContext(), new DownloadCallback() {
             @Override
             public void onDownload(File file) {
                 try {
                     track = getSubtitleFile(file.getPath());
-                }catch (Exception ignored){} // Possibility of download returning 500
+                } catch (Exception e){
+                    if(captionsViewLoadListener != null) {
+                        captionsViewLoadListener.onCaptionLoadFailed(e, url.toString(), 0);
+                    }
+                    // Possibility of download returning 500
+                }
             }
 
             @Override
             public void onFail(Exception e) {
                 Log.d(TAG, e.getMessage());
+                if(captionsViewLoadListener != null) {
+                    captionsViewLoadListener.onCaptionLoadFailed(e, url.toString(), 0);
+                }
             }
         });
         Log.d(TAG, "url: " + url.toString());

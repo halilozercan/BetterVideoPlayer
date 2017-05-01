@@ -29,6 +29,11 @@
         <attr name="bvp_autoPlay" format="boolean" />
         <attr name="bvp_loop" format="boolean" />
         <attr name="bvp_showTotalDuration" format="boolean" />
+        <!--
+            Show a preview of the current progress on the bottom of the video.
+            Kind of like the Youtube player.
+        -->
+        <attr name="bvp_showBottomProgressBar" format="boolean" />
         <attr name="bvp_hideControlsDuration" format="integer" />
 
         <attr name="bvp_disableControls" format="boolean" />

@@ -17,6 +17,10 @@
         android:layout_height="210dp"
         bvp:bvp_loadingStyle="RotatingPlane"
         bvp:bvp_captionSize="20sp"
+        bvp:bvp_hideControlsOnPlay="true"
+        bvp:bvp_autoPlay="true"
+        bvp:bvp_showTotalDuration="false"
+        bvp:bvp_showBottomProgressBar="true"
         bvp:bvp_captionColor="@android:color/holo_blue_light"/>
 
     <Button

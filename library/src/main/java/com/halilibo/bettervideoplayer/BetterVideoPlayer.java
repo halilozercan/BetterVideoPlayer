@@ -23,6 +23,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
 import android.support.annotation.MenuRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
@@ -40,6 +41,7 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -140,6 +142,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private Surface mSurface;
 
     private SeekBar mSeeker;
+    private ProgressBar mBottomProgressBar;
     private TextView mLabelPosition;
     private TextView mLabelDuration;
     private ImageButton mBtnPlayPause;
@@ -162,6 +165,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
     private boolean mHideControlsOnPlay = false;
     private boolean mShowTotalDuration = false;
+    private boolean mShowBottomProgressBar;
     private boolean mAutoPlay;
     private int mInitialPosition = -1;
     private int mHideControlsDuration = 2000; // defaults to 2 seconds.
@@ -196,6 +200,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                 mAutoPlay = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_autoPlay, false);
                 mLoop = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_loop, false);
                 mShowTotalDuration = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_showTotalDuration, false);
+                mShowBottomProgressBar = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_showBottomProgressBar, false);
                 mControlsDisabled = a.getBoolean(R.styleable.BetterVideoPlayer_bvp_disableControls, false);
                 mSubViewTextSize = a.getDimensionPixelSize(R.styleable.BetterVideoPlayer_bvp_captionSize,
                         getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
@@ -243,6 +248,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     @Override
     public void setCallback(@NonNull BetterVideoCallback callback) {
         mCallback = callback;
+    }
+
+    public void setCaptionLoadListener(@Nullable CaptionsView.CaptionsViewLoadListener listener) {
+        mSubView.setCaptionsViewLoadListener(listener);
     }
 
     @Override
@@ -372,6 +381,12 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
 
+        if(mShowBottomProgressBar) {
+            mBottomProgressBar.animate().cancel();
+            mBottomProgressBar.setAlpha(1f);
+            mBottomProgressBar.animate().alpha(0f).start();
+        }
+
         mTooolbarFrame.animate().cancel();
         mTooolbarFrame.setAlpha(0f);
         mTooolbarFrame.setVisibility(View.VISIBLE);
@@ -412,6 +427,12 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
                     }
                 }).start();
 
+        if(mShowBottomProgressBar) {
+            mBottomProgressBar.animate().cancel();
+            mBottomProgressBar.setAlpha(0f);
+            mBottomProgressBar.animate().alpha(1f).start();
+        }
+
         mTooolbarFrame.animate().cancel();
         mTooolbarFrame.setAlpha(1f);
         mTooolbarFrame.setVisibility(View.VISIBLE);
@@ -445,6 +466,19 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             }
             showControls();
         }
+    }
+
+    public void showBottomProgressBar(boolean showBottomProgressBar) {
+        this.mShowBottomProgressBar = showBottomProgressBar;
+        if(showBottomProgressBar) {
+            mBottomProgressBar.setVisibility(View.VISIBLE);
+        } else {
+            mBottomProgressBar.setVisibility(View.GONE);
+        }
+    }
+
+    public void setHideControlsDuration(int hideControlsDuration) {
+        this.mHideControlsDuration = hideControlsDuration;
     }
 
     @Override
@@ -661,10 +695,12 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         if (mSeeker != null) {
             if (percent == 100) {
                 mSeeker.setSecondaryProgress(0);
+                mBottomProgressBar.setSecondaryProgress(0);
             } else {
                 float percentage = percent / 100f;
                 int secondaryProgress = (int) (mSeeker.getMax() * percentage);
                 mSeeker.setSecondaryProgress(secondaryProgress);
+                mBottomProgressBar.setSecondaryProgress(secondaryProgress);
             }
         }
     }
@@ -675,7 +711,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mBtnPlayPause.setImageDrawable(mRestartDrawable);
         if (mHandler != null)
             mHandler.removeCallbacks(mUpdateCounters);
-        mSeeker.setProgress(mSeeker.getMax());
+        int currentProgress = mSeeker.getMax();
+        mSeeker.setProgress(currentProgress);
+        mBottomProgressBar.setProgress(currentProgress);
         if(!mLoop) {
             showControls();
         }
@@ -758,6 +796,8 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         // Inflate and add progress
         mProgressFrame = li.inflate(R.layout.bvp_include_progress, this, false);
         mProgressBar = (SpinKitView) mProgressFrame.findViewById(R.id.spin_kit);
+        mBottomProgressBar = (ProgressBar) mProgressFrame.findViewById(R.id.progressBarBottom);
+
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = getContext().getTheme();
         theme.resolveAttribute(R.attr.colorAccent, typedValue, true);
@@ -828,6 +868,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         } else {
             enableControls(false);
         }
+        showBottomProgressBar(mShowBottomProgressBar);
         setControlsEnabled(false);
         prepare();
     }
@@ -1132,11 +1173,17 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             } else {
                 mLabelDuration.setText(Util.getDurationString(dur - pos, true));
             }
-            mSeeker.setProgress((int) pos);
-            mSeeker.setMax((int) dur);
+            int position = (int) pos;
+            int duration = (int) dur;
+
+            mSeeker.setProgress(position);
+            mSeeker.setMax(duration);
+
+            mBottomProgressBar.setProgress(position);
+            mBottomProgressBar.setMax(duration);
 
             if (mProgressCallback != null)
-                mProgressCallback.onVideoProgressUpdate((int)pos, (int)dur);
+                mProgressCallback.onVideoProgressUpdate(position, duration);
             if (mHandler != null)
                 mHandler.postDelayed(this, UPDATE_INTERVAL);
         }
