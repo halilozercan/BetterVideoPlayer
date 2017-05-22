@@ -65,6 +65,7 @@ import com.halilibo.bettervideoplayer.utility.Util;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 
 /**
  * @author Aidan Follestad (halilibo)
@@ -155,6 +156,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private Handler mHandler;
 
     private Uri mSource;
+    private Map<String, String> headers;
 
     private BetterVideoCallback mCallback;
     private BetterVideoProgressCallback mProgressCallback;
@@ -243,6 +245,12 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     public void setSource(@NonNull Uri source) {
         mSource = source;
         if (mPlayer != null) prepare();
+    }
+
+    @Override
+    public void setSource(@NonNull Uri source, @NonNull Map<String, String> headers) {
+        this.headers = headers;
+        setSource(source);
     }
 
     @Override
@@ -338,10 +346,10 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             mPlayer.setSurface(mSurface);
             if (mSource.getScheme().equals("http") || mSource.getScheme().equals("https")) {
                 LOG("Loading web URI: " + mSource.toString());
-                mPlayer.setDataSource(mSource.toString());
+                mPlayer.setDataSource(getContext(), mSource, headers);
             } else {
                 LOG("Loading local URI: " + mSource.toString());
-                mPlayer.setDataSource(getContext(), mSource);
+                mPlayer.setDataSource(getContext(), mSource, headers);
             }
             mPlayer.prepareAsync();
         } catch (IOException e) {

@@ -15,12 +15,16 @@ import android.view.Window;
 
 import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 
+import java.util.Map;
+
 /**
  * @author Aidan Follestad (halilibo)
  */
 interface IUserMethods {
 
     void setSource(@NonNull Uri source);
+
+    void setSource(@NonNull Uri source, @NonNull Map<String, String> headers);
 
     void setCallback(@NonNull BetterVideoCallback callback);
 
