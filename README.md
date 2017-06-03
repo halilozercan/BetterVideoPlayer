@@ -6,10 +6,11 @@ Better Video Player is a rethought version(fork) of [Easy Video Player](https://
 
 ##### Features
 
-* *Based on the stock MediaPlayer API.* It will work on all devices and all CPUs, and it works with both local and remote sources.
-* *Simple.* Much less code is required than alternative options to get up and running.
-* *Very configurable.* There are lots of options available to make the player behave exactly how you want it to behave.
-* *Adaptive.* The player use the colors of your (AppCompat) Activity theme automatically.
+* __Based on the stock MediaPlayer API__ It will work on all devices and all CPUs, and it works with both local and remote sources.
+* __Simple__ Much less code is required than alternative options to get up and running.
+* __Very configurable__ There are lots of options available to make the player behave exactly how you want it to behave.
+* __Adaptive__ The player use the colors of your (AppCompat) Activity theme automatically.
+* __Swipe Gestures__ Supports the common on-screen scroll behavior which is used by MXPlayer, VLC and other Android media players.
 
 ---
 
@@ -43,7 +44,7 @@ dependencies {
 ##### Configuring a Player Activity
 
 You will need an `Activity` in your app that will hold the `BetterVideoPlayer` view and playback content.
-There's only a bit of configuration required.
+There's only a bit of configuration required. However, BetterVideoPlayer offers great 'customizability'.
 
 *First, the Activity needs to use a theme from Google AppCompat. Here's an example from the sample project:*
 
@@ -86,8 +87,9 @@ Before moving onto code setup, here is a list of changes that are made to EasyVi
 
 #### Easy Video Player
 
-Most of the features from Easy Video Player is still available.
-This document will include added and removed features.
+Most of the features from Easy Video Player is still available in its core. Although many configuration
+options were added, simplicity and ready-to-go behavior is not changed.
+This document will go through added and removed features.
 
 ## Removed Features
 
@@ -110,6 +112,8 @@ In the end I ended up changing behavior of the view completely.
 In my opinion, every fullscreen video activity can have different kind of tweak for a given user input.
 That is why ```setAutoFullscreen()``` has been removed from the API.
 
+__To see an example of how you can use BetterVideoPlayer in fullscreen, refer to sample app__
+
 
 ## Added Features
 
@@ -118,6 +122,8 @@ That is why ```setAutoFullscreen()``` has been removed from the API.
 BetterVideoPlayer supports captions through subtitles in 2 formats; [SRT](https://en.wikipedia.org/wiki/SubRip) and [WEBVTT](https://w3c.github.io/webvtt/).
 
 Captions can be obtained both online and from resource directory.
+
+Support for local storage will be added in the near future.
 
 ```
 // Online SUBRIP subtitle
@@ -128,6 +134,9 @@ bvp.setCaptions(R.raw.sub, SubtitleView.SubtitleMime.SUBRIP);
 ```
 
 BetterVideoPlayer also lets you define the text size(in sp) and color of captions inside XML view.
+
+CaptionsView will be seperated from BetterVideoPlayer in next versions. This will allow developers
+to customize the captions even further.
 
 ```
 <com.halilibo.bettervideoplayer.BetterVideoPlayer
@@ -140,16 +149,23 @@ BetterVideoPlayer also lets you define the text size(in sp) and color of caption
 
 #### Toolbar
 
-_TODO: Documentation for Toolbar._
+BetterVideoPlayer deploys a common toolbar at the top of player. Toolbar is useful in a video player in two different ways.
+- First, it offers a highly customizable title text place.
+- Secondly, you can inflate a menu on the toolbar and define as many actions as you need.
 
-#### Volume and Position Control
+To access toolbar, just use `getToolbar()` method. You can also show and hide the toolbar by using `showToolbar()` and `hideToolbar()`
 
-_TODO: Gif for volume and position control._
+#### Swipe Gestures
 
-Volume and track position control with swipe gestures are usually supported by
-mostly used media players like VLC or MX Player. This feature lets your users to be
-familiar with your video player. For now, this option cannot be disabled but this will
-be possible in the future.
+Swipe Gestures on a video player are proved to be very useful by MX, VLC and others. Swiping left and right to
+seek to any point in video or swipe up and down to control volume and brightness. BetterVideoPlayer comes with
+built-in support for these gestures. This feature lets your users to be familiar with your video player
+
+You can enable or disable gestures by `enableSwipeGestures()` and `disableSwipeGestures()` methods.
+
+__Important point:__ You need to use `enableSwipeGestures(Window)` method to also enable brightness control. Brightness setting needs a reference window.
+
+<img src="https://raw.githubusercontent.com/halilozercan/bettervideoplayer/master/screens/gestures.gif" width="600px" />
 
 ##### Code Setup
 
@@ -242,6 +258,7 @@ You can see almost identical code in action in the sample project.
 ## Programmatic Control
 
 Here's a list of methods that can be used to control the `BetterVideoPlayer` programmatically.
+Full list of available methods is in [IUserMethods](https://github.com/halilozercan/BetterVideoPlayer/blob/master/bettervideoplayer/src/main/java/com/halilibo/bettervideoplayer/IUserMethods.java) interface.
 Methods used to change behavior are discussed in the next section.
 
 ```java

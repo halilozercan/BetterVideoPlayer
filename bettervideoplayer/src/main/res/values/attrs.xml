@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="BetterVideoPlayer">
+
+        <attr name="bvp_source" format="string" />
+        <attr name="bvp_title" format="string" />
+
+        <attr name="bvp_playDrawable" format="reference" />
+        <attr name="bvp_pauseDrawable" format="reference" />
+        <attr name="bvp_restartDrawable" format="reference" />
+        <attr name="bvp_loadingStyle">
+            <enum name="DoubleBounce" value="0" />
+            <enum name="RotatingPlane" value="1" />
+            <enum name="Wave" value="2" />
+            <enum name="WanderingCubes" value="3" />
+            <enum name="Pulse" value="4" />
+            <enum name="ChasingDots" value="5" />
+            <enum name="ThreeBounce" value="6" />
+            <enum name="Circle" value="7" />
+            <enum name="CubeGrid" value="8" />
+            <enum name="FadingCircle" value="9" />
+            <enum name="RotatingCircle" value="10" />
+        </attr>
+
+        <attr name="bvp_menu" format="reference" />
+
+        <attr name="bvp_hideControlsOnPlay" format="boolean" />
+        <attr name="bvp_autoPlay" format="boolean" />
+        <attr name="bvp_loop" format="boolean" />
+        <attr name="bvp_showTotalDuration" format="boolean" />
+        <!--
+            Show a preview of the current progress on the bottom of the video.
+            Kind of like the Youtube player.
+        -->
+        <attr name="bvp_showBottomProgressBar" format="boolean" />
+        <attr name="bvp_swipeGesturesEnabled" format="boolean" />
+        <attr name="bvp_showToolbar" format="boolean" />
+        <attr name="bvp_hideControlsDuration" format="integer" />
+
+        <attr name="bvp_disableControls" format="boolean" />
+
+        <attr name="bvp_autoFullscreen" format="boolean" />
+
+        <attr name="bvp_captionSize" format="dimension" />
+        <attr name="bvp_captionColor" format="color" />
+
+    </declare-styleable>
+
+</resources>

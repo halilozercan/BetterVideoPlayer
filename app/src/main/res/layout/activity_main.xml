@@ -14,27 +14,28 @@
     <com.halilibo.bettervideoplayer.BetterVideoPlayer
         android:id="@+id/bvp"
         android:layout_width="wrap_content"
-        android:layout_height="210dp"
-        bvp:bvp_loadingStyle="RotatingPlane"
+        android:layout_height="240dp"
+        bvp:bvp_autoPlay="true"
+        bvp:bvp_captionColor="@android:color/holo_blue_light"
         bvp:bvp_captionSize="20sp"
         bvp:bvp_hideControlsOnPlay="true"
-        bvp:bvp_autoPlay="true"
-        bvp:bvp_showTotalDuration="false"
+        bvp:bvp_loadingStyle="RotatingPlane"
         bvp:bvp_showBottomProgressBar="true"
-        bvp:bvp_captionColor="@android:color/holo_blue_light"/>
+        bvp:bvp_title="Big Buck Bunny"
+        bvp:bvp_showTotalDuration="false"/>
 
     <Button
         android:id="@+id/background_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Background Video"
-        android:layout_below="@+id/bvp"/>
+        android:layout_below="@+id/bvp"
+        android:text="Background Video"/>
 
     <Button
         android:id="@+id/fulscreen_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fullscreen Video"
-        android:layout_below="@+id/background_activity_button"/>
+        android:layout_below="@+id/background_activity_button"
+        android:text="Fullscreen Video"/>
 
 </RelativeLayout>

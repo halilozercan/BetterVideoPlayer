@@ -94,7 +94,6 @@ public class FullscreenActivity extends AppCompatActivity {
         mBetterVideoPlayer = (BetterVideoPlayer) findViewById(R.id.bvp);
         mBetterVideoPlayer.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + com.halilibo.sample.R.raw.video));
 
-        mBetterVideoPlayer.setTitle("Big Buck Bunny");
         // Set up the user interaction to manually show or hide the system UI.
         /*mBetterVideoPlayer.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
         bvp = (BetterVideoPlayer) findViewById(R.id.bvp);
 
-
         if(savedInstanceState == null) {
             bvp.setAutoPlay(true);
             bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
@@ -46,18 +45,30 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bvp.setHideControlsOnPlay(true);
-        bvp.setMenu(R.menu.menu_dizi);
-        bvp.setMenuCallback(new Toolbar.OnMenuItemClickListener() {
+
+        bvp.getToolbar().inflateMenu(R.menu.menu_dizi);
+        bvp.getToolbar().setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.action_settings){
-                    //Log.i(TAG, "Action Clicked");
+                switch (item.getItemId()){
+                    case R.id.action_enable_swipe:
+                        bvp.enableSwipeGestures();
+                        break;
+                    case R.id.action_disable_swipe:
+                        bvp.disableSwipeGestures();
+                        break;
+                    case R.id.action_show_bottombar:
+                        bvp.setBottomProgressBarVisibility(true);
+                        break;
+                    case R.id.action_hide_bottombar:
+                        bvp.setBottomProgressBarVisibility(false);
+                        break;
                 }
                 return false;
             }
         });
 
-        bvp.setWindow(getWindow());
+        bvp.enableSwipeGestures(getWindow());
 
         bvp.setCallback(new BetterVideoCallback() {
             @Override

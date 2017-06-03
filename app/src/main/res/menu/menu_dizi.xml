@@ -1,6 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:icon="@android:drawable/ic_menu_add"
-        android:orderInCategory="100" app:showAsAction="always" />
+    <item android:id="@+id/action_enable_swipe" android:title="Enable Swipe"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_disable_swipe" android:title="Disable Swipe"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_show_bottombar" android:title="Show BottomBar"
+          android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_hide_bottombar" android:title="Hide BottomBar"
+          android:orderInCategory="100" app:showAsAction="never" />
 </menu>
