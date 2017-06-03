@@ -34,7 +34,7 @@ Add this in your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile 'com.github.halilozercan:BetterVideoPlayer:1.0.0'
+    compile 'com.github.halilozercan:BetterVideoPlayer:1.1.0'
 }
 ```
 
