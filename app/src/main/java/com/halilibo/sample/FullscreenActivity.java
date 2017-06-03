@@ -94,6 +94,16 @@ public class FullscreenActivity extends AppCompatActivity {
         mBetterVideoPlayer = (BetterVideoPlayer) findViewById(R.id.bvp);
         mBetterVideoPlayer.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + com.halilibo.sample.R.raw.video));
 
+        mBetterVideoPlayer.getToolbar().setTitle("FullScreen Sample");
+        mBetterVideoPlayer.getToolbar()
+            .setNavigationIcon(android.support.v7.appcompat.R.drawable.abc_ic_ab_back_material);
+        mBetterVideoPlayer.getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
         // Set up the user interaction to manually show or hide the system UI.
         /*mBetterVideoPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
