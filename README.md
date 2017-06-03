@@ -165,7 +165,7 @@ You can enable or disable gestures by `enableSwipeGestures()` and `disableSwipeG
 
 __Important point:__ You need to use `enableSwipeGestures(Window)` method to also enable brightness control. Brightness setting needs a reference window.
 
-<img src="https://raw.githubusercontent.com/halilozercan/bettervideoplayer/master/screens/gestures.gif" width="600px" />
+<img src="https://github.com/halilozercan/BetterVideoPlayer/raw/master/screens/gestures.gif" width="600px" />
 
 ##### Code Setup
 
