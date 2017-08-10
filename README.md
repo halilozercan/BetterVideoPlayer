@@ -301,6 +301,9 @@ player.hideControls().
 // Shows the controls if they're hidden, hides them if they're shown.
 player.toggleControls();
 
+// Enables double tap to seek like in Youtube. Input: seek time in MS
+player.enableDoubleTapSeek(int);
+
 // Returns true if the default controls are currently shown.
 player.isControlsShown();
 
