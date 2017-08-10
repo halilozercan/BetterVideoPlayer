@@ -8,5 +8,29 @@
         android:id="@+id/textureview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+    
+    <TextView
+        android:id="@+id/view_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:visibility="gone"
+        android:alpha="0"
+        android:drawableTop="@drawable/ic_forward"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/view_backward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:visibility="gone"
+        android:alpha="0"
+        android:drawableTop="@drawable/ic_backward"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"/>
 
 </FrameLayout>
