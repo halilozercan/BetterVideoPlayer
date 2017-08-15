@@ -28,7 +28,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -68,6 +70,7 @@ import java.util.Map;
  * @author Aidan Follestad
  * Modified and improved by Halil Ozercan
  */
+@SuppressWarnings("ALL")
 public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         TextureView.SurfaceTextureListener, MediaPlayer.OnPreparedListener,
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener,
@@ -78,7 +81,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private static final int UPDATE_INTERVAL = 100;
 
     private SpinKitView mProgressBar;
-    private TextView mPositionTextView;
+    private TextView mPositionTextView, viewForward, viewBackward;
 
     private CaptionsView mSubView;
     private AudioManager am;
@@ -86,6 +89,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private String mTitle;
     private int mSubViewTextSize;
     private int mSubViewTextColor;
+    private Context context;
 
     /**
      * Window that hold the player. Necessary for setting brightness.
@@ -157,6 +161,8 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
     private int mInitialTextureHeight;
     private Handler mHandler;
 
+    private int viewVisibility;
+
     private Uri mSource;
     private Map<String, String> headers;
 
@@ -182,7 +188,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
     private void init(Context context, AttributeSet attrs) {
         setBackgroundColor(Color.BLACK);
-
+        this.context = context;
         if (attrs != null) {
             TypedArray a = context.getTheme().obtainStyledAttributes(
                     attrs,
@@ -289,16 +295,21 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         switch (type){
             case PLAY_BUTTON:
                 mPlayDrawable = drawable;
-                if (!isPlaying()) mBtnPlayPause.setImageDrawable(drawable);
+                if (!isPlaying()) {
+                    mBtnPlayPause.setImageDrawable(drawable);
+                }
                 break;
             case PAUSE_BUTTON:
                 mPauseDrawable = drawable;
-                if (isPlaying()) mBtnPlayPause.setImageDrawable(drawable);
+                if (isPlaying()) {
+                    mBtnPlayPause.setImageDrawable(drawable);
+                }
                 break;
             case RESTART_BUTTON:
                 mPauseDrawable = drawable;
-                if (mPlayer != null && mPlayer.getCurrentPosition() >= mPlayer.getDuration())
+                if (mPlayer != null && mPlayer.getCurrentPosition() >= mPlayer.getDuration()) {
                     mBtnPlayPause.setImageDrawable(drawable);
+                }
                 break;
         }
     }
@@ -363,6 +374,66 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         } catch (IOException e) {
             throwError(e);
         }
+    }
+
+    public void setDoubleTap(final int seek) {
+        mClickFrame.setOnTouchListener(new View.OnTouchListener() {
+
+            int screenWidthHalf = Util.getScreenWidth(context)/2;
+
+            private GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onDoubleTap(MotionEvent e) {
+                    int seekSec = seek/1000;
+                    viewForward.setText(seekSec + " seconds");
+                    viewBackward.setText(seekSec + " seconds");
+                    if(e.getX() > screenWidthHalf) {
+                        animateViewFade(viewForward, 1);
+                        seekTo(getCurrentPosition() + seek);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                animateViewFade(viewForward, 0);
+                            }
+                        }, 500);
+                    } else {
+                        animateViewFade(viewBackward, 1);
+                        seekTo(getCurrentPosition() - seek);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                animateViewFade(viewBackward, 0);
+                            }
+                        }, 500);
+                    }
+                    return true;
+                }
+
+                @Override
+                public boolean onSingleTapConfirmed(MotionEvent e) {
+                    toggleControls();
+                    return true;
+                }
+            });
+
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                gestureDetector.onTouchEvent(motionEvent);
+                return true;
+            }
+        });
+    }
+
+    private void animateViewFade(final View view, final int alpha) {
+        viewVisibility = alpha > 0 ? View.VISIBLE : View.INVISIBLE;
+        view.animate()
+                .alpha(alpha)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        view.setVisibility(viewVisibility);
+                    }
+                });
     }
 
     private void setControlsEnabled(boolean enabled) {
@@ -829,6 +900,9 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         mTextureView = (TextureView) mTextureFrame.findViewById(R.id.textureview);
         mTextureView.setSurfaceTextureListener(this);
 
+        viewForward = (TextView) mTextureFrame.findViewById(R.id.view_forward);
+        viewBackward = (TextView) mTextureFrame.findViewById(R.id.view_backward);
+
         // Inflate and add progress
         mProgressFrame = li.inflate(R.layout.bvp_include_progress, this, false);
         mProgressBar = (SpinKitView) mProgressFrame.findViewById(R.id.spin_kit);
@@ -919,15 +993,13 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
         if (view.getId() == R.id.btnPlayPause) {
             if (mPlayer.isPlaying()) {
                 pause();
-            }
-            else {
+            } else {
                 if (mHideControlsOnPlay && !mControlsDisabled) {
                     mHandler.postDelayed(hideControlsRunnable, 500);
                 }
                 start();
             }
-        }
-        else if(view.getId() == R.id.duration){
+        } else if(view.getId() == R.id.duration){
             mShowTotalDuration = !mShowTotalDuration;
         }
     }

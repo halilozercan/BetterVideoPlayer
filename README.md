@@ -11,6 +11,7 @@ Better Video Player is a rethought version(fork) of [Easy Video Player](https://
 * __Very configurable__ There are lots of options available to make the player behave exactly how you want it to behave.
 * __Adaptive__ The player use the colors of your (AppCompat) Activity theme automatically.
 * __Swipe Gestures__ Supports the common on-screen scroll behavior which is used by MXPlayer, VLC and other Android media players.
+* __Double tap to seek__ Very youtube like double tap to seek with custom time.
 
 ---
 
@@ -300,6 +301,9 @@ player.hideControls().
 
 // Shows the controls if they're hidden, hides them if they're shown.
 player.toggleControls();
+
+// Enables double tap to seek like in Youtube. Input: seek time in MS
+player.enableDoubleTapSeek(int);
 
 // Returns true if the default controls are currently shown.
 player.isControlsShown();
