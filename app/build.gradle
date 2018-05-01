@@ -20,9 +20,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.github.halilozercan:BetterVideoPlayer:1.1.0'
-    compile "com.android.support:appcompat-v7:$project.googleAPIsVersion"
-    compile "com.android.support:support-compat:$project.googleAPIsVersion"
-    compile "com.android.support:support-v4:$project.googleAPIsVersion"
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(path: ":bettervideoplayer")
+    implementation "com.android.support:appcompat-v7:$project.googleAPIsVersion"
+    implementation "com.android.support:support-compat:$project.googleAPIsVersion"
+    implementation "com.android.support:support-v4:$project.googleAPIsVersion"
 }

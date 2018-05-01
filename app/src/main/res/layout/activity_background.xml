@@ -22,9 +22,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CONTENT"
+            android:id="@+id/example_textview"
             android:textSize="30sp"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"/>
+
+        <Button
+            android:id="@+id/example_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/example_textview"
+            android:layout_centerHorizontal="true"
+            android:text="Buttons"/>
     </RelativeLayout>
 
 </RelativeLayout>

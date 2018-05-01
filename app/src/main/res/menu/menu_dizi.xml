@@ -2,10 +2,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_enable_swipe" android:title="Enable Swipe"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/action_disable_swipe" android:title="Disable Swipe"
+    <item android:id="@+id/action_enable_double_tap" android:title="Enable DoubleTap"
+          android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_disable_swipe" android:title="Disable Gestures"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_show_bottombar" android:title="Show BottomBar"
           android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_hide_bottombar" android:title="Hide BottomBar"
+          android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_show_captions" android:title="Show Captions"
+          android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_hide_captions" android:title="Hide Captions"
           android:orderInCategory="100" app:showAsAction="never" />
 </menu>

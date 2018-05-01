@@ -34,7 +34,11 @@
             Kind of like the Youtube player.
         -->
         <attr name="bvp_showBottomProgressBar" format="boolean" />
-        <attr name="bvp_swipeGesturesEnabled" format="boolean" />
+        <attr name="bvp_gestureType">
+            <enum name="NoGesture" value="0" />
+            <enum name="SwipeGesture" value="1" />
+            <enum name="DoubleTapGesture" value="2" />
+        </attr>
         <attr name="bvp_showToolbar" format="boolean" />
         <attr name="bvp_hideControlsDuration" format="integer" />
 

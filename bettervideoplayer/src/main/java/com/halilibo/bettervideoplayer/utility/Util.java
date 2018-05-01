@@ -14,10 +14,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class Util {
 
-    public static int getScreenWidth(Context context) {
-        return context.getResources().getDisplayMetrics().widthPixels;
-    }
-
     public static String getDurationString(long durationMs, boolean negativePrefix) {
         long hours = TimeUnit.MILLISECONDS.toHours(durationMs);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(durationMs);
@@ -76,5 +72,9 @@ public class Util {
         } finally {
             a.recycle();
         }
+    }
+
+    public static int getScreenWidth(Context context) {
+        return context.getResources().getDisplayMetrics().widthPixels;
     }
 }

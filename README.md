@@ -400,6 +400,7 @@ The programmatic configuration options shown above can also be configured direct
     app:bvp_themeColor="@color/color_primary"
     app:bvp_captionSize="22sp"
     app:bvp_captionColor="@color/caption_color"
+    app:bvp_gestureType="SwipeGesture"
     app:bvp_loadingStyle="DoubleBounce"
     app:bvp_loop="false" />
 ```

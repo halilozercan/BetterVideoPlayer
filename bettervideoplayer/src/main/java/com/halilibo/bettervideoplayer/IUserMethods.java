@@ -44,7 +44,7 @@ interface IUserMethods {
      * @param   type    Which button is being targeted.
      * @param   drawable    Drawable object to use for styling.
      */
-    void setButtonDrawable(@BetterVideoPlayer.LoadingStyle int type, @NonNull Drawable drawable);
+    void setButtonDrawable(@BetterVideoPlayer.ButtonType int type, @NonNull Drawable drawable);
 
     void setHideControlsOnPlay(boolean hide);
 
@@ -68,6 +68,10 @@ interface IUserMethods {
 
     void setBottomProgressBarVisibility(boolean isShowing);
 
+    /**
+     * Enable swipe gestures which are volume control for up and down at right side of the player.
+     * Horizontal swipes changes progress of the player.
+     */
     void enableSwipeGestures();
 
     /**
@@ -77,7 +81,14 @@ interface IUserMethods {
      */
     void enableSwipeGestures(@NonNull Window window);
 
-    void disableSwipeGestures();
+    /**
+     * Double tap gestures are Youtube like. Seek forward or backward
+     * after double tapping at one side.
+     * @param seek
+     */
+    void enableDoubleTapGestures(int seek);
+
+    void disableGestures();
 
     void showToolbar();
 

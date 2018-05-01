@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        bvp = (BetterVideoPlayer) findViewById(R.id.bvp);
+        bvp = findViewById(R.id.bvp);
 
         if(savedInstanceState == null) {
             bvp.setAutoPlay(true);
@@ -52,10 +52,13 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.action_enable_swipe:
-                        bvp.enableSwipeGestures();
+                        bvp.enableSwipeGestures(getWindow());
+                        break;
+                    case R.id.action_enable_double_tap:
+                        bvp.enableDoubleTapGestures(5000);
                         break;
                     case R.id.action_disable_swipe:
-                        bvp.disableSwipeGestures();
+                        bvp.disableGestures();
                         break;
                     case R.id.action_show_bottombar:
                         bvp.setBottomProgressBarVisibility(true);
@@ -63,6 +66,11 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.action_hide_bottombar:
                         bvp.setBottomProgressBarVisibility(false);
                         break;
+                    case R.id.action_show_captions:
+                        bvp.setCaptions(R.raw.sub, CaptionsView.CMime.SUBRIP);
+                        break;
+                    case R.id.action_hide_captions:
+                        bvp.removeCaptions();
                 }
                 return false;
             }
