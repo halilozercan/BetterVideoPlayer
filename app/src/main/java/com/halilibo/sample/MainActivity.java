@@ -2,6 +2,7 @@ package com.halilibo.sample;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -40,13 +41,14 @@ public class MainActivity extends AppCompatActivity {
 
         if(savedInstanceState == null) {
             bvp.setAutoPlay(true);
-            bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
+            bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + com.halilibo.sample.R.raw.video));
             bvp.setCaptions(R.raw.sub, CaptionsView.CMime.SUBRIP);
         }
 
         bvp.setHideControlsOnPlay(true);
 
         bvp.getToolbar().inflateMenu(R.menu.menu_dizi);
+        bvp.getToolbar().setOverflowIcon(ContextCompat.getDrawable(this, R.drawable.ic_settings_white_24dp));
         bvp.getToolbar().setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {

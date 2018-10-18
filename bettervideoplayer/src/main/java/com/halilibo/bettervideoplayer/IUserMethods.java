@@ -19,7 +19,7 @@ import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 import java.util.Map;
 
 /**
- * @author Aidan Follestad (halilibo)
+ * @author Aidan Follestad (halilozercan)
  * This interface defines which methods should be available to
  * library users. The methods found here constitutes the actual
  * interface of the player.
@@ -54,13 +54,6 @@ interface IUserMethods {
                    @FloatRange(from = 0f, to = 1f) float rightVolume);
 
     void setLoop(boolean loop);
-
-    /**
-     * BetterVideoPlayer utilizes @see com.github.ybq.android.spinkit.SpinKitView
-     * to have 'better' loading animations.
-     * @param style A style from SpinKit family.
-     */
-    void setLoadingStyle(@BetterVideoPlayer.LoadingStyle int style);
 
     void setHideControlsDuration(int hideControlsDuration);
 

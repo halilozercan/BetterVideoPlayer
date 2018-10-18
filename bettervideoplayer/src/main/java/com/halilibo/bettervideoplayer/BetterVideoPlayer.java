@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -28,7 +29,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -44,19 +44,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
-import com.github.ybq.android.spinkit.SpinKitView;
-import com.github.ybq.android.spinkit.style.ChasingDots;
-import com.github.ybq.android.spinkit.style.Circle;
-import com.github.ybq.android.spinkit.style.CubeGrid;
-import com.github.ybq.android.spinkit.style.DoubleBounce;
-import com.github.ybq.android.spinkit.style.FadingCircle;
-import com.github.ybq.android.spinkit.style.Pulse;
-import com.github.ybq.android.spinkit.style.RotatingCircle;
-import com.github.ybq.android.spinkit.style.RotatingPlane;
-import com.github.ybq.android.spinkit.style.ThreeBounce;
-import com.github.ybq.android.spinkit.style.WanderingCubes;
-import com.github.ybq.android.spinkit.style.Wave;
 import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
 import com.halilibo.bettervideoplayer.utility.EmptyCallback;
 import com.halilibo.bettervideoplayer.utility.Util;
@@ -64,7 +51,10 @@ import com.halilibo.bettervideoplayer.utility.Util;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.HashMap;
 import java.util.Map;
+
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 /**
  * @author Aidan Follestad
@@ -79,7 +69,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
   private static final String BETTER_VIDEO_PLAYER_BRIGHTNESS = "BETTER_VIDEO_PLAYER_BRIGHTNESS";
   private static final int UPDATE_INTERVAL = 100;
 
-  private SpinKitView mProgressBar;
+  private MaterialProgressBar mProgressBar;
   private TextView mPositionTextView, viewForward, viewBackward;
 
   private CaptionsView mSubView;
@@ -88,32 +78,11 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
   private String mTitle;
   private int mSubViewTextSize;
   private int mSubViewTextColor;
-  private Context context;
 
   /**
    * Window that hold the player. Necessary for setting brightness.
    */
   private Window mWindow;
-
-  private static final int DOUBLE_BOUNCE = 0;
-  private static final int ROTATING_PLANE = 1;
-  private static final int WAVE = 2;
-  private static final int WANDERING_CUBES = 3;
-  private static final int PULSE = 4;
-  private static final int CHASING_DOTS = 5;
-  private static final int THREE_BOUNCE = 6;
-  private static final int CIRCLE = 7;
-  private static final int CUBE_GRID = 8;
-  private static final int FADING_CIRCLE = 9;
-  private static final int ROTATING_CIRCLE = 10;
-
-  @IntDef({DOUBLE_BOUNCE, ROTATING_PLANE, WAVE,
-      WANDERING_CUBES, PULSE, CHASING_DOTS,
-      THREE_BOUNCE, CIRCLE, CUBE_GRID,
-      FADING_CIRCLE, ROTATING_CIRCLE})
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface LoadingStyle {
-  }
 
   private static final int PLAY_BUTTON = 0;
   private static final int PAUSE_BUTTON = 1;
@@ -172,7 +141,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
   private int viewVisibility;
 
   private Uri mSource;
-  private Map<String, String> headers;
+  private Map<String, String> headers = new HashMap<>();
 
   private BetterVideoCallback mCallback;
   private BetterVideoProgressCallback mProgressCallback;
@@ -189,7 +158,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
   private int mGestureType = NO_GESTURE;
   private boolean mAutoPlay = false;
   private boolean mControlsDisabled = false;
-  private int mLoadingStyle = CHASING_DOTS;
   private int mInitialPosition = -1;
   private int mHideControlsDuration = 2000; // defaults to 2 seconds.
   private int mDoubleTapSeekDuration;
@@ -197,7 +165,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
   private void init(Context context, AttributeSet attrs) {
     setBackgroundColor(Color.BLACK);
-    this.context = context;
     if (attrs != null) {
       TypedArray a = context.getTheme().obtainStyledAttributes(
           attrs,
@@ -219,8 +186,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             R.styleable.BetterVideoPlayer_bvp_pauseDrawable);
         mRestartDrawable = a.getDrawable(
             R.styleable.BetterVideoPlayer_bvp_restartDrawable);
-        mLoadingStyle = a.getInt(
-            R.styleable.SpinKitView_SpinKit_Style, 0);
         mHideControlsDuration = a.getInteger(
             R.styleable.BetterVideoPlayer_bvp_hideControlsDuration, mHideControlsDuration);
 
@@ -245,7 +210,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
             getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size));
         mSubViewTextColor = a.getColor(
             R.styleable.BetterVideoPlayer_bvp_captionColor,
-            ContextCompat.getColor(context, R.color.bvp_subtitle_color));
+                getResources().getColor(R.color.bvp_subtitle_color));
 
       } catch (Exception e) {
         LOG("Exception " + e.getMessage());
@@ -255,7 +220,7 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
       }
     } else {
       mSubViewTextSize = getResources().getDimensionPixelSize(R.dimen.bvp_subtitle_size);
-      mSubViewTextColor = ContextCompat.getColor(context, R.color.bvp_subtitle_color);
+      mSubViewTextColor = getResources().getColor(R.color.bvp_subtitle_color);
     }
 
     if (mPlayDrawable == null)
@@ -874,15 +839,14 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
     // Inflate and add progress
     mProgressFrame = li.inflate(R.layout.bvp_include_progress, this, false);
-    mProgressBar = mProgressFrame.findViewById(R.id.spin_kit);
+    mProgressBar = mProgressFrame.findViewById(R.id.material_progress_bar);
     mBottomProgressBar = mProgressFrame.findViewById(R.id.progressBarBottom);
 
     TypedValue typedValue = new TypedValue();
     Resources.Theme theme = getContext().getTheme();
     theme.resolveAttribute(R.attr.colorAccent, typedValue, true);
     int color = typedValue.data;
-    mProgressBar.setColor(color);
-    setLoadingStyle(mLoadingStyle);
+    mProgressBar.setProgressTintList(ColorStateList.valueOf(color));
 
     mPositionTextView = mProgressFrame.findViewById(R.id.position_textview);
     mPositionTextView.setShadowLayer(3, 3, 3, Color.BLACK);
@@ -1065,50 +1029,6 @@ public class BetterVideoPlayer extends RelativeLayout implements IUserMethods,
 
   public void setLoop(boolean loop) {
     this.mLoop = loop;
-  }
-
-  @Override
-  public void setLoadingStyle(@LoadingStyle int style) {
-    Drawable drawable;
-    switch (style) {
-      case DOUBLE_BOUNCE:
-        drawable = new DoubleBounce();
-        break;
-      case ROTATING_PLANE:
-        drawable = new RotatingPlane();
-        break;
-      case WAVE:
-        drawable = new Wave();
-        break;
-      case WANDERING_CUBES:
-        drawable = new WanderingCubes();
-        break;
-      case PULSE:
-        drawable = new Pulse();
-        break;
-      case CHASING_DOTS:
-        drawable = new ChasingDots();
-        break;
-      case THREE_BOUNCE:
-        drawable = new ThreeBounce();
-        break;
-      case CIRCLE:
-        drawable = new Circle();
-        break;
-      case CUBE_GRID:
-        drawable = new CubeGrid();
-        break;
-      case FADING_CIRCLE:
-        drawable = new FadingCircle();
-        break;
-      case ROTATING_CIRCLE:
-        drawable = new RotatingCircle();
-        break;
-      default:
-        drawable = new ThreeBounce();
-        break;
-    }
-    mProgressBar.setIndeterminateDrawable(drawable);
   }
 
   OnSwipeTouchListener clickFrameSwipeListener =

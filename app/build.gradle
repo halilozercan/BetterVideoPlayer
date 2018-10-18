@@ -20,9 +20,9 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(path: ":bettervideoplayer")
-    implementation "com.android.support:appcompat-v7:$project.googleAPIsVersion"
-    implementation "com.android.support:support-compat:$project.googleAPIsVersion"
-    implementation "com.android.support:support-v4:$project.googleAPIsVersion"
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api project(path: ":bettervideoplayer")
+    api "com.android.support:appcompat-v7:$project.googleAPIsVersion"
+    api "com.android.support:support-compat:$project.googleAPIsVersion"
+    api "com.android.support:support-v4:$project.googleAPIsVersion"
 }

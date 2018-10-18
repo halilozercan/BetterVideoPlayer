@@ -11,11 +11,11 @@ import java.util.Locale;
 public class HelperMethods {
 
     public static boolean isRemotePath(Uri path){
-        return (path.getScheme().equals("http") || path.getScheme().equals("https"));
+        return ("http".equals(path.getScheme()) || "https".equals(path.getScheme()));
     }
 
     public static String secondsToDuration(int seconds){
-        return String.format("%02d:%02d:%02d",
+        return String.format(Locale.getDefault(), "%02d:%02d:%02d",
             seconds / 3600,
             (seconds % 3600) / 60,
             (seconds % 60)
