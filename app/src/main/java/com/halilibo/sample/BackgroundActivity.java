@@ -1,13 +1,16 @@
 package com.halilibo.sample;
 
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import com.halilibo.bettervideoplayer.BetterVideoCallback;
-import com.halilibo.bettervideoplayer.BetterVideoPlayer;
+import com.halilibo.bvpkotlin.BetterVideoPlayer;
+import com.halilibo.bvpkotlin.VideoCallback;
+
+import org.jetbrains.annotations.NotNull;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class BackgroundActivity extends AppCompatActivity {
 
@@ -18,24 +21,24 @@ public class BackgroundActivity extends AppCompatActivity {
 
         BetterVideoPlayer bvp = findViewById(R.id.bvp);
         bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
-        bvp.setCallback(new BetterVideoCallback() {
+        bvp.setCallback(new VideoCallback() {
             @Override
-            public void onStarted(BetterVideoPlayer player) {
+            public void onStarted(@NotNull BetterVideoPlayer player) {
 
             }
 
             @Override
-            public void onPaused(BetterVideoPlayer player) {
+            public void onPaused(@NotNull BetterVideoPlayer player) {
 
             }
 
             @Override
-            public void onPreparing(BetterVideoPlayer player) {
+            public void onPreparing(@NotNull BetterVideoPlayer player) {
 
             }
 
             @Override
-            public void onPrepared(BetterVideoPlayer player) {
+            public void onPrepared(@NotNull BetterVideoPlayer player) {
                 player.setVolume(0,0);
             }
 
@@ -45,17 +48,17 @@ public class BackgroundActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(BetterVideoPlayer player, Exception e) {
+            public void onError(@NotNull BetterVideoPlayer player, Exception e) {
 
             }
 
             @Override
-            public void onCompletion(BetterVideoPlayer player) {
+            public void onCompletion(@NotNull BetterVideoPlayer player) {
 
             }
 
             @Override
-            public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
+            public void onToggleControls(@NotNull BetterVideoPlayer player, boolean isShowing) {
 
             }
         });

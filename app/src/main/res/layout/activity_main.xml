@@ -11,12 +11,12 @@
     android:configChanges="orientation|keyboardHidden|screenLayout|screenSize"
     tools:context="com.halilibo.sample.MainActivity">
 
-    <com.halilibo.bettervideoplayer.BetterVideoPlayer
+    <com.halilibo.bvpkotlin.BetterVideoPlayer
         android:id="@+id/bvp"
         android:layout_width="wrap_content"
-        android:layout_height="240dp"
+        android:layout_height="220dp"
         bvp:bvp_autoPlay="true"
-        bvp:bvp_captionColor="@android:color/holo_blue_light"
+        bvp:bvp_captionColor="#e7e7e7"
         bvp:bvp_captionSize="20sp"
         bvp:bvp_hideControlsOnPlay="true"
         bvp:bvp_loadingStyle="RotatingPlane"

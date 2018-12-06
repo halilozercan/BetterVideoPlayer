@@ -2,21 +2,23 @@ package com.halilibo.sample;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.halilibo.bettervideoplayer.BetterVideoCallback;
-import com.halilibo.bettervideoplayer.BetterVideoPlayer;
-import com.halilibo.bettervideoplayer.subtitle.CaptionsView;
+import com.halilibo.bvpkotlin.BetterVideoPlayer;
+import com.halilibo.bvpkotlin.VideoCallback;
+import com.halilibo.bvpkotlin.captions.CaptionsView;
+
+import org.jetbrains.annotations.NotNull;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
     private BetterVideoPlayer bvp;
-    private String TAG = "BetterSample";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
         if(savedInstanceState == null) {
             bvp.setAutoPlay(true);
-            bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + com.halilibo.sample.R.raw.video));
-            bvp.setCaptions(R.raw.sub, CaptionsView.CMime.SUBRIP);
+            bvp.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video));
+            bvp.setCaptions(R.raw.sub, CaptionsView.SubMime.SUBRIP);
         }
 
         bvp.setHideControlsOnPlay(true);
@@ -69,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         bvp.setBottomProgressBarVisibility(false);
                         break;
                     case R.id.action_show_captions:
-                        bvp.setCaptions(R.raw.sub, CaptionsView.CMime.SUBRIP);
+                        bvp.setCaptions(R.raw.sub, CaptionsView.SubMime.SUBRIP);
                         break;
                     case R.id.action_hide_captions:
                         bvp.removeCaptions();
@@ -80,24 +82,24 @@ public class MainActivity extends AppCompatActivity {
 
         bvp.enableSwipeGestures(getWindow());
 
-        bvp.setCallback(new BetterVideoCallback() {
+        bvp.setCallback(new VideoCallback() {
             @Override
-            public void onStarted(BetterVideoPlayer player) {
+            public void onStarted(@NotNull BetterVideoPlayer player) {
                 //Log.i(TAG, "Started");
             }
 
             @Override
-            public void onPaused(BetterVideoPlayer player) {
+            public void onPaused(@NotNull BetterVideoPlayer player) {
                 //Log.i(TAG, "Paused");
             }
 
             @Override
-            public void onPreparing(BetterVideoPlayer player) {
+            public void onPreparing(@NotNull BetterVideoPlayer player) {
                 //Log.i(TAG, "Preparing");
             }
 
             @Override
-            public void onPrepared(BetterVideoPlayer player) {
+            public void onPrepared(@NotNull BetterVideoPlayer player) {
                 //Log.i(TAG, "Prepared");
             }
 
@@ -107,17 +109,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(BetterVideoPlayer player, Exception e) {
+            public void onError(@NotNull BetterVideoPlayer player, Exception e) {
                 //Log.i(TAG, "Error " +e.getMessage());
             }
 
             @Override
-            public void onCompletion(BetterVideoPlayer player) {
+            public void onCompletion(@NotNull BetterVideoPlayer player) {
                 //Log.i(TAG, "Completed");
             }
 
             @Override
-            public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
+            public void onToggleControls(@NotNull BetterVideoPlayer player, boolean isShowing) {
 
             }
         });

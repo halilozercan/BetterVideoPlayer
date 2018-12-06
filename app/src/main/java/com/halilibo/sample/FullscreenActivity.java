@@ -2,14 +2,15 @@ package com.halilibo.sample;
 
 import android.annotation.SuppressLint;
 import android.net.Uri;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.halilibo.bettervideoplayer.BetterVideoPlayer;
+import com.halilibo.bvpkotlin.BetterVideoPlayer;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -91,12 +92,12 @@ public class FullscreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
 
         mVisible = true;
-        mBetterVideoPlayer = (BetterVideoPlayer) findViewById(R.id.bvp);
+        mBetterVideoPlayer = findViewById(R.id.bvp);
         mBetterVideoPlayer.setSource(Uri.parse("android.resource://" + getPackageName() + "/" + com.halilibo.sample.R.raw.video));
 
         mBetterVideoPlayer.getToolbar().setTitle("FullScreen Sample");
         mBetterVideoPlayer.getToolbar()
-            .setNavigationIcon(android.support.v7.appcompat.R.drawable.abc_ic_ab_back_material);
+            .setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
         mBetterVideoPlayer.getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
