@@ -35,7 +35,7 @@ Add this in your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile 'com.github.halilozercan:BetterVideoPlayer:1.2.alpha1'
+    compile 'com.github.halilozercan:BetterVideoPlayer:kotlin-SNAPSHOT'
 }
 ```
 
