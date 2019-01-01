@@ -38,9 +38,11 @@ class CaptionsView @JvmOverloads constructor(
 
     private fun getTimedText(currentPosition: Long): String {
         var result = ""
-        for ((key, value) in track!!) {
-            if (currentPosition < key) break
-            if (currentPosition < value.to) result = value.text
+        track?.let { track ->
+            for ((key, value) in track) {
+                if (currentPosition < key) break
+                if (currentPosition < value.to) result = value.text
+            }
         }
         return result
     }
@@ -127,14 +129,10 @@ class CaptionsView @JvmOverloads constructor(
         try {
             inputStream = resources.openRawResource(resId)
             val result = parse(inputStream, mimeType)
-            if (captionsViewLoadListener != null) {
-                captionsViewLoadListener!!.onCaptionLoadSuccess(null, resId)
-            }
+            captionsViewLoadListener?.onCaptionLoadSuccess(null, resId)
             return result
         } catch (e: Exception) {
-            if (captionsViewLoadListener != null) {
-                captionsViewLoadListener!!.onCaptionLoadFailed(e, null, resId)
-            }
+            captionsViewLoadListener?.onCaptionLoadFailed(e, null, resId)
             e.printStackTrace()
         } finally {
             inputStream?.let {

@@ -50,12 +50,11 @@ class BetterVideoPlayer @JvmOverloads constructor(
     private var mPlayer: MediaPlayer? = null
     private var am: AudioManager? = null
     private var mSurface: Surface? = null
-    private var mTitle: String? = null
     private var mSubViewTextSize: Int = 0
     private var mSubViewTextColor: Int = 0
 
     /**
-     * Window that hold the player. Necessary for setting brightness.
+     * Window that holds the player. Necessary for setting brightness.
      */
     private var mWindow: Window? = null
 
@@ -94,6 +93,7 @@ class BetterVideoPlayer @JvmOverloads constructor(
     private var mPauseDrawable: Drawable? = null
     private var mRestartDrawable: Drawable? = null
 
+    private var mTitle: String? = null
     private var mLoop = false
     private var mHideControlsOnPlay = false
     private var mShowTotalDuration = true

@@ -1,17 +1,15 @@
 ## Better Video Player
 
-Better Video Player is a rethought version(fork) of [Easy Video Player](https://github.com/afollestad/easy-video-player).
-
 <img src="https://raw.githubusercontent.com/halilozercan/bettervideoplayer/master/screens/fullscreen.png" width="600px" />
 
 ##### Features
 
+* Completely written in __Kotlin__.
 * __Based on the stock MediaPlayer API__ It will work on all devices and all CPUs, and it works with both local and remote sources.
 * __Simple__ Much less code is required than alternative options to get up and running.
 * __Very configurable__ There are lots of options available to make the player behave exactly how you want it to behave.
-* __Adaptive__ The player use the colors of your (AppCompat) Activity theme automatically.
-* __Swipe Gestures__ Supports the common on-screen scroll behavior which is used by MXPlayer, VLC and other Android media players.
-* __Double tap to seek__ Very youtube like double tap to seek with custom time.
+* __Swipe Gestures__ Supports the common on-screen scroll behavior which is used by MXPlayer, VLC and other Android video players.
+* __Tap Gestures__ Double tap on right or left side of the screen to jump back and forward like Youtube and Netflix players.
 
 ---
 
@@ -47,19 +45,7 @@ dependencies {
 You will need an `Activity` in your app that will hold the `BetterVideoPlayer` view and playback content.
 There's only a bit of configuration required. However, BetterVideoPlayer offers great 'customizability'.
 
-*First, the Activity needs to use a theme from Google AppCompat. Here's an example from the sample project:*
-
-```xml
-<style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-
-    <item name="colorPrimary">@color/primary</item>
-    <item name="colorPrimaryDark">@color/primary_dark</item>
-    <item name="colorAccent">@color/accent</item>
-
-</style>
-```
-
-*Second, the Activity should disable recreation on orientation changes. This allows playback to continue
+*Host Activity should disable recreation on orientation changes. This allows playback to continue
 when the device orientation changes. The player will adapt the aspect ratio accordingly. You just need to
 set `android:configChanges` values to your `Activity` in `AndroidManifest.xml`:*
 
@@ -67,80 +53,45 @@ set `android:configChanges` values to your `Activity` in `AndroidManifest.xml`:*
 <activity
     android:name=".MyPlayerActivity"
     android:label="@string/my_player_activity"
-    android:configChanges="orientation|keyboardHidden|screenLayout|screenSize"
-    android:theme="@style/AppTheme" />   <!-- Don't need to set the theme here if it's set on your <application /> tag already -->
+    android:configChanges="orientation|keyboardHidden|screenLayout|screenSize" /> 
 ```
 
 ##### Layouts
 
 The layout for your player Activity can be very simple. You only need a `BetterVideoPlayer` view,
-all the controls and everything else are created by the player view itself.
+all the controls and everything else are created by the player itself.
 
 ```xml
-<com.halilibo.bettervideoplayer.BetterVideoPlayer
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.halilibo.bvpkotlin.BetterVideoPlayer
     android:id="@+id/player"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
 ```
 
-Before moving onto code setup, here is a list of changes that are made to EasyVideoPlayer.
+### Notable Features
 
-#### Easy Video Player
-
-Most of the features from Easy Video Player is still available in its core. Although many configuration
-options were added, simplicity and ready-to-go behavior is not changed.
-This document will go through added and removed features.
-
-## Removed Features
-
-##### Actions
-
-In my opinion, 2 actions that are placed under MediaPlayer controls were uneasy to use.
-Library should not put developer to choose between drawable and string resources for action buttons.
-Also, 2 means multiple. If number of actions are 2, then it can be 10 or more.
-
-Instead, BetterVideoPlayer takes advantage of Toolbar API. Basically, there is a toolbar at the top of
-BetterVideoPlayer. Custom View API lets you to set title and populate a menu of actions on this toolbar.
-
-*Removed anything related to actions. LeftAction, RightAction, BottomLabel, SubmitButton, RetryButton.*
-
-##### Fullscreen
-
-While using Easy Video Player, implementing a fullscreen video activity had been cumbersome for me.
-Maybe it was my fault but I could not achieve the behavior I wanted with given fullscreen feature.
-In the end I ended up changing behavior of the view completely.
-In my opinion, every fullscreen video activity can have different kind of tweak for a given user input.
-That is why ```setAutoFullscreen()``` has been removed from the API.
-
-__To see an example of how you can use BetterVideoPlayer in fullscreen, refer to sample app__
-
-
-## Added Features
+BetterVideoPlayer is capable of almost all functionality that you expect from a VideoPlayer. However, it is important to repeat that
+BetterVideoPlayer uses Android MediaPlayer API. Thus, it __does not provide every codec in the world__. In the future, there is a plan for moving underlying
+player to ExoPlayer.
 
 #### Captions
 
-BetterVideoPlayer supports captions through subtitles in 2 formats; [SRT](https://en.wikipedia.org/wiki/SubRip) and [WEBVTT](https://w3c.github.io/webvtt/).
+BetterVideoPlayer supports captions in 2 formats; [SRT](https://en.wikipedia.org/wiki/SubRip) and [WEBVTT](https://w3c.github.io/webvtt/). Support for more formats through pull requests will be appreciated.
 
-Captions can be obtained both online and from resource directory.
-
-Support for local storage will be added in the near future.
+Captions can be obtained both online and from resource directory. BetterVideoPlayer __currently does not support captions from local file storage__.
 
 ```
 // Online SUBRIP subtitle
-bvp.setCaptions("https://www.example.com/subrip.srt", SubtitleView.SubtitleMime.SUBRIP);
+bvp.setCaptions("https://www.example.com/subrip.srt", CaptionsView.SubMime.SUBRIP);
 
 // res/raw SUBRIP subtitle
-bvp.setCaptions(R.raw.sub, SubtitleView.SubtitleMime.SUBRIP);
+bvp.setCaptions(R.raw.sub, CaptionsView.SubMime.SUBRIP);
 ```
 
 BetterVideoPlayer also lets you define the text size(in sp) and color of captions inside XML view.
 
-CaptionsView will be seperated from BetterVideoPlayer in next versions. This will allow developers
-to customize the captions even further.
-
 ```
-<com.halilibo.bettervideoplayer.BetterVideoPlayer
+<com.halilibo.bvpkotlin.BetterVideoPlayer
         android:id="@+id/bvp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -150,17 +101,18 @@ to customize the captions even further.
 
 #### Toolbar
 
-BetterVideoPlayer deploys a common toolbar at the top of player. Toolbar is useful in a video player in two different ways.
-- First, it offers a highly customizable title text place.
-- Secondly, you can inflate a menu on the toolbar and define as many actions as you need.
+BetterVideoPlayer deploys a common toolbar at the top of the player. Toolbar is useful in a video player in two different ways.
+- It offers a highly customizable Title area.
+- You can inflate a menu on the toolbar and define as many actions as you need.
 
-To access toolbar, just use `getToolbar()` method. You can also show and hide the toolbar by using `showToolbar()` and `hideToolbar()`
+To access toolbar, just use `getToolbar()` method. You can also show and hide the toolbar by using `showToolbar()` and `hideToolbar()`. Besides these methods, it is not recommended to 
+alter Toolbar's visibility.
 
 #### Swipe Gestures
 
 Swipe Gestures on a video player are proved to be very useful by MX, VLC and others. Swiping left and right to
 seek to any point in video or swipe up and down to control volume and brightness. BetterVideoPlayer comes with
-built-in support for these gestures. This feature lets your users to be familiar with your video player
+built-in support for these gestures. This feature enables developers to have a player that their users are familiar with.
 
 You can enable or disable gestures by `enableSwipeGestures()` and `disableSwipeGestures()` methods.
 
@@ -171,10 +123,7 @@ __Important point:__ You need to use `enableSwipeGestures(Window)` method to als
 
 ##### Code Setup
 
-Since your `Activity` is using an AppCompat theme, make sure it extends `AppCompatActivity`.
-
-Initializing the player is very simple. You just set a callback listener to receive notifications of
-important events, and a source.
+Initializing the player is very simple. You just set a callback listener and a source.
 
 ```java
 public class MyPlayerActivity extends AppCompatActivity implements BetterVideoCallback {
@@ -188,13 +137,10 @@ public class MyPlayerActivity extends AppCompatActivity implements BetterVideoCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_myplayer);
 
-        // Grabs a reference to the player view
-        player = (BetterVideoPlayer) findViewById(R.id.player);
+        // Grab a reference to the player view
+        player = findViewById(R.id.player);
 
-        // Sets the callback to this Activity, since it inherits EasyVideoCallback
-        player.setCallback(this);
-
-        // Sets the source to the HTTP URL held in the TEST_URL variable.
+        // Set the source to the HTTP URL held in the TEST_URL variable.
         // To play files, you can use Uri.fromFile(new File("..."))
         player.setSource(Uri.parse(TEST_URL));
 
@@ -208,62 +154,19 @@ public class MyPlayerActivity extends AppCompatActivity implements BetterVideoCa
         // Make sure the player stops playing if the user presses the home button.
         player.pause();
     }
-
-    // Methods for the implemented EasyVideoCallback
-
-    @Override
-    public void onStarted(BetterVideoPlayer player) {
-        //Log.i(TAG, "Started");
-    }
-
-    @Override
-    public void onPaused(BetterVideoPlayer player) {
-        //Log.i(TAG, "Paused");
-    }
-
-    @Override
-    public void onPreparing(BetterVideoPlayer player) {
-        //Log.i(TAG, "Preparing");
-    }
-
-    @Override
-    public void onPrepared(BetterVideoPlayer player) {
-        //Log.i(TAG, "Prepared");
-    }
-
-    @Override
-    public void onBuffering(int percent) {
-        //Log.i(TAG, "Buffering " + percent);
-    }
-
-    @Override
-    public void onError(BetterVideoPlayer player, Exception e) {
-        //Log.i(TAG, "Error " +e.getMessage());
-    }
-
-    @Override
-    public void onCompletion(BetterVideoPlayer player) {
-        //Log.i(TAG, "Completed");
-    }
-
-    @Override
-    public void onToggleControls(BetterVideoPlayer player, boolean isShowing) {
-        //Log.i(TAG, "Controls toggled " + isShowing);
-    }
 }
 ```
 
-You can see almost identical code in action in the sample project.
+You can see the almost identical code in action in the sample project.
 
 ---
 
 ## Programmatic Control
 
 Here's a list of methods that can be used to control the `BetterVideoPlayer` programmatically.
-Full list of available methods is in [IUserMethods](https://github.com/halilozercan/BetterVideoPlayer/blob/master/bettervideoplayer/src/main/java/com/halilibo/bettervideoplayer/IUserMethods.java) interface.
-Methods used to change behavior are discussed in the next section.
+Full list of available methods is in [IBetterVideoPlayer](https://github.com/halilozercan/BetterVideoPlayer/blob/master/bvpkotlin/src/main/java/com/halilibo/bvpkotlin/IBetterVideoPlayer.kt) interface.
 
-```java
+```
 BetterVideoPlayer player = // ...
 
 // Sets a video source to be played.
@@ -302,7 +205,7 @@ player.hideControls().
 // Shows the controls if they're hidden, hides them if they're shown.
 player.toggleControls();
 
-// Enables double tap to seek like in Youtube. Input: seek time in MS
+// Enables double tap to seek like in Youtube. Input: seek time in milliseconds
 player.enableDoubleTapSeek(int);
 
 // Returns true if the default controls are currently shown.
@@ -331,9 +234,9 @@ player.getDuration();
 
 ## Programmatic Configuration
 
-There are a options that can be used to change the default behavior of the `EasyVideoPlayer`:
+There are options that can be used to change the default behavior of the `BetterVideoPlayer`:
 
-```java
+```
 BetterVideoPlayer player = // ...
 
 // Defaults to true. The controls fade out when playback starts.
@@ -345,22 +248,8 @@ player.setAutoPlay(boolean);
 // Sets a position that will be skipped to right when the player becomes prepared. Only happens once when set.
 player.setInitialPosition(int);
 
-// Sets a custom drawable for the left restart action.
-player.setRestartDrawable(Drawable);
-player.setRestartDrawableRes(int);
-
-// Sets a custom drawable for the play button.
-player.setPlayDrawable(Drawable);
-player.setPlayDrawableRes(int);
-
-// Sets a custom drawable for the pause button.
-player.setPauseDrawable(Drawable);
-player.setPauseDrawableRes(int);
-
-// Sets a theme color that is used to color the seekbar and loading icon.
-// Defaults to your activity's primary theme color.
-player.setThemeColor(int);
-player.setThemeColorRes(int);
+// Sets a custom drawable for play, pause and restart button states.
+player.setButtonDrawable(ButtonType, Drawable);
 
 // Sets the left and right volume levels. The player must be prepared first.
 player.setVolume(float, float);
@@ -370,12 +259,6 @@ player.setLoop(false);
 
 // Registers a caption source
 player.setCaptions(Uri, mimeType);
-
-// Sets a style from SpinKit.
-player.setLoadingStyle(int);
-
-// Sets the current window. Useful when you want to enable brightness setting in swipe.
-player.setWindow(Window);
 ```
 
 ---
@@ -385,8 +268,7 @@ player.setWindow(Window);
 The programmatic configuration options shown above can also be configured directly from your layout:
 
 ```xml
-<com.afollestad.easyvideoplayer.EasyVideoPlayer xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<com.halilibo.bvpkotlin.BetterVideoPlayer
     android:id="@+id/player"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -397,11 +279,9 @@ The programmatic configuration options shown above can also be configured direct
     app:bvp_playDrawable="@drawable/bvp_action_play"
     app:bvp_restartDrawable="@drawable/bvp_action_restart"
     app:bvp_source="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
-    app:bvp_themeColor="@color/color_primary"
     app:bvp_captionSize="22sp"
     app:bvp_captionColor="@color/caption_color"
     app:bvp_gestureType="SwipeGesture"
-    app:bvp_loadingStyle="DoubleBounce"
     app:bvp_loop="false" />
 ```
 
