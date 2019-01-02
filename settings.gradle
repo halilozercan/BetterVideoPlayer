@@ -1,1 +1,1 @@
-include ':app', ':bettervideoplayer'
+include ':app', ':bvpkotlin'

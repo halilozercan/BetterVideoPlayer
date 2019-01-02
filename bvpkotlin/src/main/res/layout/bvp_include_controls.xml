@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bvp_controls_background"
+    android:clickable="true"
+    android:id="@+id/bvp_include_relativelayout"
+    android:paddingLeft="@dimen/bvp_content_inset_half"
+    android:paddingRight="@dimen/bvp_content_inset_half">
+
+    <SeekBar
+        android:id="@+id/seeker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/duration"
+        android:layout_toEndOf="@+id/position"
+        android:layout_alignBottom="@+id/btnPlayPause"
+        android:layout_alignTop="@+id/btnPlayPause"
+        android:maxHeight="1000dp" />
+
+    <TextView
+        android:id="@+id/position"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textColor="#fff"
+        android:textSize="@dimen/bvp_text_size_medium"
+        tools:ignore="UnusedAttribute"
+        tools:text="00:00"
+        android:layout_alignParentStart="false"
+        android:layout_alignTop="@+id/btnPlayPause"
+        android:layout_alignBottom="@+id/btnPlayPause"
+        android:gravity="center"
+        android:layout_marginStart="@dimen/bvp_content_inset_half"
+        android:layout_toEndOf="@+id/btnPlayPause" />
+
+    <TextView
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:fontFamily="sans-serif"
+        android:textColor="#fff"
+        android:textSize="@dimen/bvp_text_size_medium"
+        tools:ignore="UnusedAttribute"
+        tools:text="-05:00"
+        android:gravity="center"
+        android:layout_alignTop="@+id/btnPlayPause"
+        android:layout_alignBottom="@+id/btnPlayPause"
+        android:layout_marginEnd="@dimen/bvp_content_inset_half" />
+
+    <ImageButton
+        android:id="@+id/btnPlayPause"
+        android:layout_width="@dimen/bvp_button_size"
+        android:layout_height="@dimen/bvp_button_size"
+        android:background="?selectableItemBackground"
+        android:src="@drawable/bvp_action_play"
+        tools:ignore="ContentDescription"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

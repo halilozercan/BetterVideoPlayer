@@ -6,7 +6,7 @@
     xmlns:bvp="http://schemas.android.com/apk/res-auto"
     tools:context="com.halilibo.sample.BackgroundActivity">
 
-    <com.halilibo.bettervideoplayer.BetterVideoPlayer
+    <com.halilibo.bvpkotlin.BetterVideoPlayer
         android:id="@+id/bvp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

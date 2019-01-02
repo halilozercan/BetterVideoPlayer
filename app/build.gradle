@@ -1,4 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion project.compileSdkVersion
@@ -19,10 +22,17 @@ android {
     }
 }
 
+configurations {
+    cleanedAnnotations
+    compile.exclude group: 'org.jetbrains' , module:'annotations'
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(path: ":bettervideoplayer")
-    implementation "com.android.support:appcompat-v7:$project.googleAPIsVersion"
-    implementation "com.android.support:support-compat:$project.googleAPIsVersion"
-    implementation "com.android.support:support-v4:$project.googleAPIsVersion"
+    implementation project(path: ":bvpkotlin")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "androidx.appcompat:appcompat:1.0.2"
+    implementation "androidx.core:core:1.0.1"
+    implementation "com.google.android.material:material:1.1.0-alpha02"
+    implementation 'org.jetbrains:annotations-java5:15.0'
 }
