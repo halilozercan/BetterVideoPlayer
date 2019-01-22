@@ -284,3 +284,9 @@ The programmatic configuration options shown above can also be configured direct
     app:bvp_gestureType="SwipeGesture"
     app:bvp_loop="false" />
 ```
+
+### Shoutouts
+
+You can find one of, if not, the best coding tutorials in _Turkish_ at https://mobilhanem.com
+
+En iyi Türkçe yazılım eğitimleri için https://mobilhanem.com
