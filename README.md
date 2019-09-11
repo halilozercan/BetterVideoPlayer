@@ -1,3 +1,5 @@
+## DEPRECATED - This project is deprecated. I suggest you to look for alternatives like ExoPlayer.
+
 ## Better Video Player
 
 <img src="https://raw.githubusercontent.com/halilozercan/bettervideoplayer/master/screens/fullscreen.png" width="600px" />
