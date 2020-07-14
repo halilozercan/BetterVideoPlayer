@@ -1,0 +1,33 @@
+0
+00:00:04,170 --> 00:00:11,610
+<i>A beautiful sky and forest</i>
+
+5
+00:00:12,000 --> 00:00:14,446
+<i>Dank river</i>
+
+7
+00:00:15,448 --> 00:00:17,000
+<i>Bird singing Take on me ♬</i>
+
+8
+00:00:20,000 --> 00:00:22,000
+<i>360 NO SCOPE</i>
+
+9
+00:00:23,791 --> 00:00:26,392
+<i>Here are more captions</i>
+
+10
+00:00:26,791 --> 00:00:29,392
+<i>What do you</i>
+<i>want me to say</i>
+
+11
+00:00:29,791 --> 00:00:33,392
+<i>Preparing captions is hard</i>
+
+12
+00:00:36,791 --> 00:00:43,392
+<i>Holy shit, is that a bunny?</i>
+<i>I'm out!!</i>

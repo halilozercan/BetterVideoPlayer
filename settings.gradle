@@ -1,1 +1,3 @@
 include ':app', ':bvpkotlin'
+include ':ComposeVideoPlayer'
+include ':composedemo'
