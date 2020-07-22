@@ -1,121 +1,93 @@
 package com.example.composedemo
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.*
-import androidx.ui.core.Modifier
-import androidx.ui.core.setContent
+import androidx.lifecycle.Lifecycle
+import androidx.ui.core.*
+import androidx.ui.foundation.Icon
 import androidx.ui.foundation.Text
-import androidx.ui.layout.Column
-import androidx.ui.layout.Row
-import androidx.ui.layout.Spacer
-import androidx.ui.layout.width
+import androidx.ui.graphics.Color
+import androidx.ui.layout.*
 import androidx.ui.material.Button
+import androidx.ui.material.IconButton
+import androidx.ui.material.icons.Icons
+import androidx.ui.material.icons.filled.PlayArrow
+import androidx.ui.material.icons.filled.Star
+import androidx.ui.material.icons.lazyMaterialIcon
+import androidx.ui.material.icons.materialPath
+import androidx.ui.text.TextStyle
+import androidx.ui.text.style.TextAlign
 import androidx.ui.tooling.preview.Preview
+import androidx.ui.unit.TextUnit
 import androidx.ui.unit.dp
 import com.example.composedemo.ui.ComposeVideoPlayerTheme
 import com.example.composevideoplayer.VideoPlayer
-import kotlinx.coroutines.delay
+import com.example.composevideoplayer.VideoPlayerController
+import com.example.composevideoplayer.VideoPlayerSource
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val context = ContextAmbient.current
+            val controller = VideoPlayerController(
+                    context,
+                    VideoPlayerSource.Raw(R.raw.video)
+            )
+
             ComposeVideoPlayerTheme {
-                VideoPlayer(source = R.raw.video)
+                Column(verticalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxHeight()) {
+                    Text("Welcome to",
+                            fontSize = TextUnit.Sp(36),
+                            color = Color.Blue,
+                            style = TextStyle(
+                                    textAlign = TextAlign.Center
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                    )
+
+                    VideoPlayer(controller)
+
+                    Text("Jetpack Compose",
+                            fontSize = TextUnit.Sp(36),
+                            color = Color.Blue,
+                            style = TextStyle(
+                                    textAlign = TextAlign.Center
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                    )
+
+                    /*Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(onClick = {
+                        controller.setSource(VideoPlayerSource.Network("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+                    }, modifier = Modifier.weight(1f)) {
+                        Text("Go")
+                    }*/
+                }
             }
         }
     }
 }
 
-val ProvidableCounterAmbient = ambientOf { "default" }
-
 @Composable
-fun TestWidget(text: String) {
-    // only first commit
-    onActive {
-        Log.d("ComposeCallbacks", "onActive $text")
+fun foo() {
+    val playButtonUiState = state { true }
+    IconButton(
+            onClick = {
+                playButtonUiState.value = !playButtonUiState.value
+            }
+    ) {
+        Icon(
+                asset = if (playButtonUiState.value) { Icons.Filled.PlayArrow } else { Icons.Filled.Star },
+                modifier = Modifier/*.drawShadow(elevation = 2.dp)*/
+        )
     }
-
-    // When this composer commit each time
-    onCommit {
-        Log.d("ComposeCallbacks", "onCommit $text")
-    }
-
-    launchInComposition {
-        Log.d("ComposeCallbacks", "launched in composition")
-        delay(2000)
-        Log.d("ComposeCallbacks", "launched in composition after 2 seconds")
-    }
-
-    val textRemembered = remember { text }
-
-    Log.d("ComposeCallbacks", "onCompose remembered $textRemembered")
-
-
-    Providers(ProvidableCounterAmbient provides text) {
-        Row {
-            ShowTextAmbient()
-            Spacer(modifier = Modifier.width(16.dp))
-            ShowTextRegular(text)
-        }
-    }
-}
-
-@Composable
-fun ShowTextAmbient() {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextAmbient commits")
-    }
-    ShowTextAmbient2()
-}
-
-@Composable
-fun ShowTextAmbient2() {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextAmbient2 commits")
-    }
-    ShowTextAmbient3()
-}
-
-@Composable
-fun ShowTextAmbient3() {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextAmbient3 commits")
-    }
-    Text(ProvidableCounterAmbient.current)
-}
-
-
-@Composable
-fun ShowTextRegular(text: String) {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextRegular commits")
-    }
-    ShowTextRegular2(text)
-}
-
-@Composable
-fun ShowTextRegular2(text: String) {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextRegular2 commits")
-    }
-    ShowTextRegular3(text)
-}
-
-@Composable
-fun ShowTextRegular3(text: String) {
-    onCommit {
-        Log.d("ComposeCallbacks", "ShowTextRegular3 commits")
-    }
-    Text(text)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    ComposeVideoPlayerTheme {
-        VideoPlayer(R.raw.video)
-    }
+    foo()
 }

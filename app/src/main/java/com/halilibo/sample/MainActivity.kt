@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             bvp.setAutoPlay(true)
-            bvp.setSource(Uri.parse("android.resource://" + packageName + "/" + R.raw.video))
+            bvp.setSource(Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
             bvp.setCaptions(R.raw.sub, CaptionsView.SubMime.SUBRIP)
         }
 
