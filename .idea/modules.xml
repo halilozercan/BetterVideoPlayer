@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BetterVideoPlayer.iml" filepath="$PROJECT_DIR$/.idea/modules/BetterVideoPlayer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ComposeVideoPlayer/BetterVideoPlayer.ComposeVideoPlayer.iml" filepath="$PROJECT_DIR$/.idea/modules/ComposeVideoPlayer/BetterVideoPlayer.ComposeVideoPlayer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BetterVideoPlayer.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BetterVideoPlayer.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/bvpkotlin/BetterVideoPlayer.bvpkotlin.iml" filepath="$PROJECT_DIR$/.idea/modules/bvpkotlin/BetterVideoPlayer.bvpkotlin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/composedemo/BetterVideoPlayer.composedemo.iml" filepath="$PROJECT_DIR$/.idea/modules/composedemo/BetterVideoPlayer.composedemo.iml" />
+    </modules>
+  </component>
+</project>

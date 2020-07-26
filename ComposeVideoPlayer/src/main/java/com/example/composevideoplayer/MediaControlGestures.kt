@@ -1,45 +1,56 @@
 package com.example.composevideoplayer
 
-import android.util.Log
-import androidx.compose.Composable
-import androidx.compose.collectAsState
-import androidx.compose.getValue
-import androidx.lifecycle.lifecycleScope
-import androidx.ui.core.Alignment
-import androidx.ui.core.LifecycleOwnerAmbient
-import androidx.ui.core.Modifier
-import androidx.ui.core.gesture.DragObserver
-import androidx.ui.core.gesture.doubleTapGestureFilter
-import androidx.ui.core.gesture.dragGestureFilter
-import androidx.ui.core.gesture.tapGestureFilter
-import androidx.ui.core.onPositioned
+import androidx.animation.*
+import androidx.compose.*
+import androidx.ui.animation.transition
+import androidx.ui.core.*
+import androidx.ui.core.gesture.*
 import androidx.ui.foundation.Box
 import androidx.ui.foundation.Text
 import androidx.ui.geometry.Offset
 import androidx.ui.graphics.Shadow
-import androidx.ui.layout.Stack
-import androidx.ui.layout.fillMaxSize
+import androidx.ui.layout.*
+import androidx.ui.material.LinearProgressIndicator
+import androidx.ui.material.icons.Icons
+import androidx.ui.material.icons.filled.FastForward
+import androidx.ui.material.icons.filled.FastRewind
 import androidx.ui.text.TextStyle
 import androidx.ui.text.font.FontWeight
 import androidx.ui.unit.IntSize
 import androidx.ui.unit.TextUnit
+import androidx.ui.unit.dp
 import com.example.composevideoplayer.util.getDurationString
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.util.*
 import kotlin.math.abs
 
 @Composable
 fun MediaControlGestures(
-        onClick: () -> Unit = {},
-        modifier: Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     val controller = VideoPlayerControllerAmbient.current
-    val lifecycleOwnerAmbient = LifecycleOwnerAmbient.current
+
+    val controlsEnabled by controller.controlsEnabled.collectAsState()
+    val gesturesEnabled by controller.gesturesEnabled.collectAsState()
+    val controlsVisible by controller.controlsVisible.collectAsState()
+
+    if (controlsEnabled && !controlsVisible && gesturesEnabled) {
+        Stack(modifier = Modifier + modifier) {
+            GestureBox()
+            QuickSeekAnimation()
+            DraggingProgressOverlay(modifier = modifier)
+        }
+    }
+
+}
+
+@Composable
+fun GestureBox(modifier: Modifier = Modifier) {
+    val controller = VideoPlayerControllerAmbient.current
 
     lateinit var boxSize: IntSize
 
-    val dragObserver = object: DragObserver {
+    val dragObserver = object : DragObserver {
         var wasPlaying: Boolean = true
         var totalOffset = Offset.Zero
         var diffTime = -1f
@@ -53,7 +64,7 @@ fun MediaControlGestures(
 
         fun resetState() {
             totalOffset = Offset.Zero
-            controller.draggingProgressText.value = null
+            controller.draggingProgress.value = null
         }
 
         override fun onStart(downPosition: Offset) {
@@ -67,7 +78,7 @@ fun MediaControlGestures(
         }
 
         override fun onStop(velocity: Offset) {
-            if(wasPlaying) controller.play()
+            if (wasPlaying) controller.play()
             resetState()
         }
 
@@ -92,11 +103,12 @@ fun MediaControlGestures(
             }
             diffTime = finalTime - currentPosition
 
-            val progressText = "${getDurationString(finalTime.toLong(), false)} " +
-                    "[${if(diffTime < 0) "-" else "+"}${getDurationString(abs(diffTime.toLong()), false)}]"
-            controller.draggingProgressText.value = progressText
+            controller.draggingProgress.value = DraggingProgress(
+                    finalTime = finalTime,
+                    diffTime = diffTime
+            )
 
-            seekJob = lifecycleOwnerAmbient.lifecycleScope.launch {
+            seekJob = CoroutineScope(Dispatchers.Main).launch {
                 delay(200)
 
                 controller.seekTo(finalTime.toLong())
@@ -106,49 +118,182 @@ fun MediaControlGestures(
         }
     }
 
-    Stack(modifier = Modifier + modifier) {
-        Box(
-                modifier = Modifier
-                        .fillMaxSize()
-                        .onPositioned {
-                            boxSize = it.size
-                        }
-                        .dragGestureFilter(dragObserver = dragObserver)
-                        .tapGestureFilter {
-                            onClick()
-                        }
-                        .doubleTapGestureFilter {
-                            if(it.x < boxSize.width/2) {
-                                controller.quickSeekBackward()
-                            } else {
-                                controller.quickSeekForward()
-                            }
-                        } + modifier
-        )
-        DraggingProgressText(modifier = Modifier.gravity(Alignment.Center))
-    }
+    Row(modifier = Modifier.fillMaxSize()
+            .onPositioned { boxSize = it.size }
+            .dragGestureFilter(
+                    dragObserver = dragObserver,
+                    canDrag = {
+                        it.name == "LEFT" || it.name == "RIGHT"
+                    }
+            )
+            + modifier) {
 
+        val commonModifier = Modifier.fillMaxHeight()
+                .tapGestureFilter {
+                    controller.showControls()
+                }
+        Box(
+            modifier = commonModifier
+                    .weight(2f)
+                    .doubleTapGestureFilter {
+                        controller.quickSeekRewind()
+                    }
+        )
+
+        // Center where double tap does not exist
+        Box(
+                modifier = commonModifier
+                        .weight(1f)
+        )
+
+        Box(
+                modifier = commonModifier
+                        .weight(2f)
+                        .doubleTapGestureFilter {
+                            controller.quickSeekForward()
+                        }
+        )
+    }
 }
 
 @Composable
-fun DraggingProgressText(modifier: Modifier = Modifier) {
+fun QuickSeekAnimation(
+        modifier: Modifier = Modifier
+) {
     val controller = VideoPlayerControllerAmbient.current
 
-    val draggingProgressText by controller.draggingProgressText.collectAsState()
+    val state by controller.quickSeekDirection.collectAsState()
 
-    val draggingProgressTextString = draggingProgressText
+    Row(modifier = Modifier + modifier) {
+        Stack(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            if(state.direction == QuickSeekDirection.Rewind) {
+                val transitionState = transition(
+                        definition = transitionDef,
+                        initState = "start",
+                        toState = "end",
+                        onStateChangeFinished = {
+                            controller.quickSeekDirection.value = QuickSeekAction.none()
+                        }
+                )
 
-    if(draggingProgressTextString != null) {
-        Text(draggingProgressTextString,
-                fontSize = TextUnit.Companion.Sp(26),
-                fontWeight = FontWeight.Bold,
-                style = TextStyle(shadow = Shadow(
-                        blurRadius = 8f,
-                        offset = Offset(2f,2f))
-                ),
-                modifier = Modifier + modifier
-        )
+                val realAlpha = 1 - abs(1 - transitionState[alpha])
+                ShadowedIcon(
+                        Icons.Filled.FastRewind,
+                        modifier = Modifier
+                                .drawLayer(alpha = realAlpha)
+                                .gravity(Alignment.Center)
+                )
+            }
+        }
+
+        Stack(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            if(state.direction == QuickSeekDirection.Forward) {
+                val transitionState = transition(
+                        definition = transitionDef,
+                        initState = "start",
+                        toState = "end",
+                        onStateChangeFinished = {
+                            controller.quickSeekDirection.value = QuickSeekAction.none()
+                        }
+                )
+
+                val realAlpha = 1 - abs(1 - transitionState[alpha])
+                ShadowedIcon(
+                        Icons.Filled.FastForward,
+                        modifier = Modifier
+                                .drawLayer(alpha = realAlpha)
+                                .gravity(Alignment.Center)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DraggingProgressOverlay(modifier: Modifier = Modifier) {
+    val controller = VideoPlayerControllerAmbient.current
+
+    val draggingProgress by controller.draggingProgress.collectAsState()
+
+    val draggingProgressValue = draggingProgress
+
+    if (draggingProgressValue != null) {
+        val dur by controller.duration.collectAsState()
+
+        val progress = if (dur != 0L) (draggingProgressValue.finalTime / dur.toFloat()) else 0f
+        val progressPercentage = if (progress < 0) 0f else if (progress > 1) 1f else progress
+
+        Stack(modifier = Modifier + modifier) {
+            Text(draggingProgressValue.progressText,
+                    fontSize = TextUnit.Companion.Sp(26),
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(shadow = Shadow(
+                            blurRadius = 8f,
+                            offset = Offset(2f, 2f))
+                    ),
+                    modifier = Modifier.gravity(Alignment.Center)
+            )
+
+            Row(modifier = Modifier.fillMaxWidth().gravity(Alignment.BottomCenter).padding(8.dp)) {
+                LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        progress = progressPercentage
+                )
+            }
+        }
     }
 
 }
 
+private val alpha = FloatPropKey()
+private val transitionDef = transitionDefinition {
+    state("start") {
+        this[alpha] = 0f
+    }
+    state("end") {
+        this[alpha] = 2f
+    }
+
+    transition(fromState = "start", toState = "end") {
+        alpha using tween(
+                durationMillis = 500,
+                easing = LinearEasing
+        )
+    }
+
+    snapTransition("end" to "start")
+}
+
+data class DraggingProgress(
+        val finalTime: Float,
+        val diffTime: Float
+) {
+    val progressText: String
+        get() = "${getDurationString(finalTime.toLong(), false)} " +
+                "[${if (diffTime < 0) "-" else "+"}${getDurationString(abs(diffTime.toLong()), false)}]"
+}
+
+enum class QuickSeekDirection {
+    None,
+    Rewind,
+    Forward
+}
+
+data class QuickSeekAction(
+        val direction: QuickSeekDirection
+) {
+    // Each action is unique
+    override fun equals(other: Any?): Boolean {
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(direction)
+    }
+
+    companion object {
+        fun none() = QuickSeekAction(QuickSeekDirection.None)
+        fun forward() = QuickSeekAction(QuickSeekDirection.Forward)
+        fun rewind() = QuickSeekAction(QuickSeekDirection.Rewind)
+    }
+}

@@ -8,12 +8,15 @@ interface VideoPlayerState {
     val isPlaying: StateFlow<Boolean>
     val controlsVisible: StateFlow<Boolean>
     val controlsEnabled: StateFlow<Boolean>
+    val gesturesEnabled: StateFlow<Boolean>
     val duration: StateFlow<Long>
     val currentPosition: StateFlow<Long>
 
     val videoSize: StateFlow<Size>
-    val draggingProgressText: StateFlow<String?>
+    val draggingProgress: StateFlow<DraggingProgress?>
     val playbackState: StateFlow<PlaybackState>
+
+    val quickSeekDirection: StateFlow<QuickSeekAction>
 }
 
 enum class PlaybackState(val value: Int) {

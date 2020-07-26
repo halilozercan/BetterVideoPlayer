@@ -4,15 +4,13 @@ interface MediaPlaybackControls {
 
     fun play()
 
-    fun setSource(source: VideoPlayerSource)
-
     fun pause()
 
     fun playPauseToggle()
 
     fun quickSeekForward()
 
-    fun quickSeekBackward()
+    fun quickSeekRewind()
 
     fun seekTo(position: Long)
 }

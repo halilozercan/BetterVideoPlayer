@@ -1,14 +1,15 @@
 package com.example.composevideoplayer
 
-import android.util.Log
 import androidx.annotation.RawRes
 import androidx.compose.*
 import androidx.ui.core.Alignment
+import androidx.ui.core.ContextAmbient
 import androidx.ui.core.Modifier
-import androidx.ui.core.onPositioned
 import androidx.ui.foundation.ContentColorAmbient
+import androidx.ui.foundation.drawBackground
 import androidx.ui.graphics.Color
 import androidx.ui.layout.*
+import androidx.ui.material.Scaffold
 
 val VideoPlayerControllerAmbient = ambientOf<VideoPlayerController> { error("VideoPlayerController is not initialized") }
 
@@ -19,11 +20,27 @@ sealed class VideoPlayerSource {
 
 @Composable
 fun VideoPlayer(
-        controller: VideoPlayerController,
+        source: VideoPlayerSource,
+        backgroundColor: Color = Color.Black,
+        gesturesEnabled: Boolean = true,
         modifier: Modifier = Modifier
-) {
-    val controlsEnabled by controller.controlsEnabled.collectAsState()
-    val controlsVisible by controller.controlsVisible.collectAsState()
+): MediaPlaybackControls {
+    val context = ContextAmbient.current
+    val controller = remember {
+        VideoPlayerController(context, source)
+    }
+
+    onPreCommit(source) {
+        controller.setSource(source)
+    }
+
+    onPreCommit(gesturesEnabled) {
+        controller.enableGestures(gesturesEnabled)
+    }
+
+    onCommit(backgroundColor) {
+        controller.playerViewBackgroundColor = backgroundColor
+    }
 
     val videoSize by controller.videoSize.collectAsState()
 
@@ -32,26 +49,21 @@ fun VideoPlayer(
             VideoPlayerControllerAmbient provides controller
     ) {
         Stack(modifier = Modifier.fillMaxWidth()
+                .drawBackground(color = backgroundColor)
                 .aspectRatio(videoSize.width / videoSize.height)
-                .onPositioned {
-                    Log.d("DragDistance", "${it.size}")
-                } + modifier) {
-            PlayerSurface()
+                + modifier) {
 
-            if (controlsEnabled && !controlsVisible) {
-                MediaControlGestures(
-                        onClick = { controller.showControls() },
-                        modifier = Modifier.matchParentSize()
-                )
-            }
-
-            if (controlsEnabled && controlsVisible) {
-                MediaControlButtons(modifier = Modifier.matchParentSize())
-            }
+            PlayerSurface(modifier = Modifier.gravity(Alignment.Center))
+            MediaControlGestures(modifier = Modifier.matchParentSize())
+            MediaControlButtons(modifier = Modifier.matchParentSize())
+            ProgressIndicator(modifier = Modifier.gravity(Alignment.BottomCenter))
+//            AndroidSeekBar(modifier = Modifier.gravity(Alignment.BottomCenter))
         }
     }
 
     onDispose {
         controller.onDispose()
     }
+
+    return controller
 }

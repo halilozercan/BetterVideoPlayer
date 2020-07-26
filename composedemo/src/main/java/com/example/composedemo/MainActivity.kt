@@ -6,7 +6,9 @@ import androidx.compose.*
 import androidx.lifecycle.Lifecycle
 import androidx.ui.core.*
 import androidx.ui.foundation.Icon
+import androidx.ui.foundation.ScrollableColumn
 import androidx.ui.foundation.Text
+import androidx.ui.foundation.clickable
 import androidx.ui.graphics.Color
 import androidx.ui.layout.*
 import androidx.ui.material.Button
@@ -30,64 +32,46 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val context = ContextAmbient.current
-            val controller = VideoPlayerController(
-                    context,
-                    VideoPlayerSource.Raw(R.raw.video)
-            )
+            val (backgroundColorState, setBackgroundColorState) = state { Color.Black }
+            val (sourceState, setSourceState) = state { VideoPlayerSource.Network(Urls.bigBuckBunny) }
+            val (gesturesEnabled, setGesturesEnabled) = state { true }
 
             ComposeVideoPlayerTheme {
-                Column(verticalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxHeight()) {
-                    Text("Welcome to",
-                            fontSize = TextUnit.Sp(36),
-                            color = Color.Blue,
-                            style = TextStyle(
-                                    textAlign = TextAlign.Center
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                ScrollableColumn(modifier = Modifier.fillMaxHeight()) {
+                    val mediaPlaybackControls = VideoPlayer(
+                            sourceState,
+                            backgroundColorState,
+                            gesturesEnabled
                     )
 
-                    VideoPlayer(controller)
+                    Row(modifier = Modifier.padding(vertical = 16.dp)) {
+                        Button(onClick = {
+                            setSourceState(VideoPlayerSource.Network(Urls.bigBuckBunny))
+                        }) {
+                            Text("Big Buck Bunny")
+                        }
 
-                    Text("Jetpack Compose",
-                            fontSize = TextUnit.Sp(36),
-                            color = Color.Blue,
-                            style = TextStyle(
-                                    textAlign = TextAlign.Center
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                    )
-
-                    /*Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(onClick = {
-                        controller.setSource(VideoPlayerSource.Network("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
-                    }, modifier = Modifier.weight(1f)) {
-                        Text("Go")
-                    }*/
+                        Button(onClick = {
+                            setSourceState(VideoPlayerSource.Network(Urls.alice))
+                        }) {
+                            Text("Alice")
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-fun foo() {
-    val playButtonUiState = state { true }
-    IconButton(
-            onClick = {
-                playButtonUiState.value = !playButtonUiState.value
-            }
-    ) {
-        Icon(
-                asset = if (playButtonUiState.value) { Icons.Filled.PlayArrow } else { Icons.Filled.Star },
-                modifier = Modifier/*.drawShadow(elevation = 2.dp)*/
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    foo()
+    Text("Default")
+}
+
+object Urls {
+
+    val bigBuckBunny = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    val alice = "http://www.exit109.com/~dnn/clips/RW20seconds_1.mp4"
+
 }
